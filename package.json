@@ -1,0 +1,33 @@
+{
+  "name": "dine-qr-backend",
+  "version": "1.0.0",
+  "description": "Backend Service for DineQR self-order App",
+  "homepage": "https://github.com/yudhafrebian/dine-qr-backend#readme",
+  "bugs": {
+    "url": "https://github.com/yudhafrebian/dine-qr-backend/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yudhafrebian/dine-qr-backend.git"
+  },
+  "license": "ISC",
+  "author": "Yudha Frebian",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^24.10.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@prisma/client": "^7.0.1",
+    "cors": "^2.8.5",
+    "express": "^5.2.1",
+    "prisma": "^7.0.1"
+  }
+}
