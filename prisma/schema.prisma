@@ -1,0 +1,131 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  name      String
+  email     String    @unique
+  password  String
+  role      Role      @default(ADMIN)
+  tokens    RefreshToken[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? @db.Timestamptz(6)
+}
+
+model RefreshToken {
+  id         Int      @id @default(autoincrement())
+  token      String   @unique
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id])
+  userAgent  String?
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+  expiresAt  DateTime
+  revoked    Boolean  @default(false)
+}
+
+
+model Table {
+  id          Int      @id @default(autoincrement())
+  tableNumber Int
+  qrCodeUrl   String
+  createdAt   DateTime @default(now())
+  orders      Order[]
+}
+
+model Category {
+  id        Int        @id @default(autoincrement())
+  name      String
+  createdAt DateTime   @default(now())
+  menuItems MenuItem[]
+}
+
+model MenuItem {
+  id          Int         @id @default(autoincrement())
+  name        String
+  description String?
+  price       Int
+  imageUrl    String?
+  isAvailable Boolean     @default(true)
+  categoryId  Int
+  category    Category    @relation(fields: [categoryId], references: [id])
+  orderItems  OrderItem[]
+}
+
+model Order {
+  id              Int              @id @default(autoincrement())
+  orderNumber     String           @unique
+  tableId         Int
+  paymentMethod   PaymentMethod
+  paymentStatus   PaymentStatus    @default(UNPAID)
+  orderStatus     OrderStatus      @default(PENDING)
+  totalPrice      Int
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  table           Table            @relation(fields: [tableId], references: [id])
+  orderItems      OrderItem[]
+  payment         Payment?
+  transactionLogs TransactionLog[]
+}
+
+model OrderItem {
+  id         Int      @id @default(autoincrement())
+  orderId    Int
+  menuItemId Int
+  qty        Int
+  price      Int
+  menuItem   MenuItem @relation(fields: [menuItemId], references: [id])
+  order      Order    @relation(fields: [orderId], references: [id])
+}
+
+model Payment {
+  id              Int      @id @default(autoincrement())
+  orderId         Int      @unique
+  paymentType     String?
+  transactionId   String?
+  paymentStatus   String?
+  grossAmount     Int?
+  rawCallbackData Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  order           Order    @relation(fields: [orderId], references: [id])
+}
+
+model TransactionLog {
+  id        Int      @id @default(autoincrement())
+  orderId   Int?
+  event     String
+  message   String?
+  data      Json?
+  createdAt DateTime @default(now())
+  order     Order?   @relation(fields: [orderId], references: [id])
+}
+
+enum Role {
+  ADMIN
+  CASHIER
+}
+
+enum PaymentMethod {
+  CASH
+  QRIS
+}
+
+enum PaymentStatus {
+  UNPAID
+  PAID
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  READY
+  COMPLETED
+}
