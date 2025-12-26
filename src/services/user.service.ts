@@ -1,7 +1,7 @@
 import { UserRepository } from "../repositories/user.repository";
 import { ApiError } from "../utils/ApiError";
 
-export const UserService = {
+export const UserServices = {
   getAllUsers: async () => {
     const users = await UserRepository.findAll();
     if (!users) throw new ApiError(404, "Users not found");

@@ -4,6 +4,7 @@ import { prisma } from "./config/prisma";
 import AuthRouter from "./routers/auth.router";
 import UserRouter from "./routers/user.router";
 import cookieParser from "cookie-parser";
+import CategoryRouter from "./routers/category.router";
 
 const PORT = process.env.PORT || 4000;
 
@@ -25,6 +26,7 @@ class App {
   #route(): void {
     const authRouter = new AuthRouter();
     const userRouter = new UserRouter();
+    const categoryRouter = new CategoryRouter();
     this.app.get("/", (req: Request, res: Response) => {
       res.status(200).send("DineQR API BASE");
     });
@@ -33,6 +35,7 @@ class App {
     });
     this.app.use("/v1/auth", authRouter.getRouter());
     this.app.use("/v1/users", userRouter.getRouter());
+    this.app.use("/v1/categories", categoryRouter.getRouter());
   }
 
   #errorHandler(): void {

@@ -45,6 +45,7 @@ model Category {
   name      String
   createdAt DateTime   @default(now())
   menuItems MenuItem[]
+  deletedAt DateTime? @db.Timestamptz(6)
 }
 
 model MenuItem {
