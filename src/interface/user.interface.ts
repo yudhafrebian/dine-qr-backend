@@ -3,8 +3,10 @@ export interface IUser {
     name: string;
     email: string;
     password: string;
-    role: "ADMIN" | "CASHIER";
+    restaurantId: number;
+    role: "ADMIN" | "CASHIER" | "KITCHEN" | "SUPER_ADMIN";
     createdAt: Date;
     updatedAt: Date;
     deletedAt: Date | null;
 }
+

@@ -1,26 +1,42 @@
 import { compare } from "bcrypt";
 import { UserRepository } from "../repositories/user.repository";
-import { generateAccessToken, generateRefreshToken } from "../utils/token";
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  verifyRefreshToken,
+} from "../utils/token";
 import { IUser } from "../interface/user.interface";
 import { ApiError } from "../utils/ApiError";
 import { hashPassword } from "../utils/hashPassword";
+import slugify from "../utils/slugify";
+import { prisma } from "../config/prisma";
+import { RestaurantRepository } from "../repositories/restaurant.repository";
+import { SubscriptionRepository } from "../repositories/subscription.repository";
+import { IAuth } from "../interface/auth.interface";
+import { PlanRepository } from "../repositories/plan.repository";
+import { subscribe } from "diagnostics_channel";
 
 export const AuthServices = {
   login: async (email: string, password: string) => {
     const account = await UserRepository.findByEmail(email);
 
     if (!account || account.deletedAt) {
-      throw new Error("Invalid Password or Email");
+      throw new ApiError(401, "Invalid Password or Email");
     }
 
     const passwordCheck = await compare(password, account.password);
     if (!passwordCheck) {
-      throw new Error("Invalid Password or Email");
+      throw new ApiError(401, "Invalid Password or Email");
+    }
+
+    if (!account.restaurant.isActive) {
+      throw new ApiError(401, "Restaurant is not active");
     }
 
     const payload = {
       id: account.id,
       role: account.role,
+      restaurandId: account.restaurantId,
     };
 
     const accessToken = generateAccessToken(payload);
@@ -51,19 +67,90 @@ export const AuthServices = {
     };
   },
 
-  register: async (user: IUser) => {
-    const isExist = await UserRepository.findByEmail(user.email);
+  logout: async (userId: number) => {
+    await UserRepository.deleteRefreshToken(userId);
+  },
 
-    if (isExist) {
-      throw new ApiError(409, "Email already exist");
+  register: async (payload: IAuth) => {
+    return prisma.$transaction(async (tx) => {
+      const slug = slugify(payload.restaurant.name);
+      const isRestaurantExist = await RestaurantRepository.findBySlug(slug);
+      const isEmailExist = await UserRepository.findByEmail(payload.user.email);
+
+      if (isRestaurantExist)
+        throw new ApiError(400, "Restaurant name already exist");
+
+      if (isEmailExist) throw new ApiError(400, "Email already exist");
+
+      const restaurant = await RestaurantRepository.create(
+        {
+          ...payload.restaurant,
+          slug,
+        },
+        tx
+      );
+
+      const freePlan = await PlanRepository.findPlanByName("Free", tx);
+
+      if (!freePlan) throw new ApiError(404, "Plan not found");
+
+      const subscriptions = await SubscriptionRepository.create(
+        {
+          restaurantId: restaurant.id,
+          planId: freePlan.id,
+          status: "ACTIVE",
+          startDate: new Date(),
+          endDate: null,
+          autoRenew: true,
+        },
+        tx
+      );
+
+      const user = await UserRepository.create(
+        {
+          ...payload.user,
+          password: await hashPassword(payload.user.password),
+          restaurantId: restaurant.id,
+        },
+        tx
+      );
+
+      return {user, restaurant, subscriptions};
+    });
+  },
+
+  refresh: async (refreshToken: string) => {
+    if (!refreshToken) throw new ApiError(401, "Refresh token not found");
+
+    const payload = verifyRefreshToken(refreshToken);
+
+    const tokenInDb = await UserRepository.findRefreshTokenById(payload.id);
+
+    if (!tokenInDb) {
+      throw new ApiError(401, "Invalid refresh token");
     }
 
-    const newPassword = await hashPassword(user.password);
+    if (tokenInDb.expiresAt < new Date()) {
+      throw new ApiError(401, "Refresh token expired");
+    }
 
-    const data = await UserRepository.create({
-      ...user,
-      password: newPassword,
+    const newAccessToken = generateAccessToken({
+      id: payload.id,
+      role: payload.role,
+      restaurandId: payload.restaurandId,
     });
-    return data;
+
+    const newRefreshToken = generateRefreshToken({
+      id: payload.id,
+      role: payload.role,
+      restaurandId: payload.restaurandId,
+    });
+
+    await UserRepository.updateRefreshToken(tokenInDb.id, newRefreshToken);
+
+    return {
+      accessToken: newAccessToken,
+      refreshToken: newRefreshToken,
+    };
   },
 };

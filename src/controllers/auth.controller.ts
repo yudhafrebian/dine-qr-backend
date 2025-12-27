@@ -37,9 +37,26 @@ class AuthController {
   async Logout(req: Request, res: Response, next: NextFunction): Promise<void> {
     const response = new ApiResponse(res);
     try {
+      const userId = req.user.id;
+      await AuthServices.logout(userId);
       res.clearCookie("access_token",cookieOptions);
       res.clearCookie("refresh_token",refreshCookieOptions);
       response.success(200, "Logout Success");
+    } catch (error) {
+      console.log(error);
+      next(error);
+    }
+  }
+
+  async Refresh(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const response = new ApiResponse(res);
+    try {
+      const refreshToken = req.cookies.refresh_token;
+      const data = await AuthServices.refresh(refreshToken);
+      res.cookie("access_token", data?.accessToken, cookieOptions);
+      res.cookie("refresh_token", data?.refreshToken, refreshCookieOptions);
+      response.success(200, "Refresh Success", data);
+      
     } catch (error) {
       console.log(error);
       next(error);

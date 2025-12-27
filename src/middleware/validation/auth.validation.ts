@@ -41,3 +41,34 @@ export const registerValidation = [
     next();
   },
 ];
+
+export const onboardingRegisterValidation = [
+  body("restaurant.name")
+    .notEmpty()
+    .withMessage("Restaurant name is required")
+    .bail()
+    .isLength({ min: 3 }),
+
+  body("user.name")
+    .notEmpty()
+    .withMessage("User name is required")
+    .bail()
+    .isLength({ min: 3 }),
+
+  body("user.email").isEmail().withMessage("Invalid email"),
+
+  body("user.password")
+    .isLength({ min: 6 })
+    .withMessage("Password min 6 characters"),
+
+  (req: Request, res: Response, next: NextFunction) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        message: "Validation error",
+        errors: errors.array(),
+      });
+    }
+    next();
+  },
+];

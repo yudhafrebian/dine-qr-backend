@@ -6,8 +6,8 @@ class CategoryRouter {
   #categoryController: CategoryController;
   constructor() {
     this.#route = Router();
-    this.#initializeRoutes();
     this.#categoryController = new CategoryController();
+    this.#initializeRoutes();
   }
 
   #initializeRoutes() {
