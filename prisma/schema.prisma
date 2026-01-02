@@ -32,6 +32,7 @@ model User {
   updatedAt    DateTime       @default(now()) @updatedAt @db.Timestamptz(6)
   deletedAt    DateTime?      @db.Timestamptz(6)
   restaurantId Int
+  Bank         Bank[]
   tokens       RefreshToken[]
   restaurant   Restaurant     @relation(fields: [restaurantId], references: [id])
 }
@@ -66,6 +67,7 @@ model Category {
   createdAt    DateTime   @default(now()) @db.Timestamptz(6)
   deletedAt    DateTime?  @db.Timestamptz(6)
   restaurantId Int
+  slug         String
   restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
   menuItems    MenuItem[]
 }
@@ -81,6 +83,7 @@ model MenuItem {
   createdAt    DateTime    @default(now()) @db.Timestamptz(6)
   restaurantId Int
   updatedAt    DateTime    @default(now()) @updatedAt @db.Timestamptz(6)
+  deletedAt    DateTime?   @db.Timestamptz(6)
   category     Category    @relation(fields: [categoryId], references: [id])
   restaurant   Restaurant  @relation(fields: [restaurantId], references: [id])
   orderItems   OrderItem[]
@@ -166,6 +169,19 @@ model Subscription {
   updatedAt    DateTime           @default(now()) @updatedAt @db.Timestamptz(6)
   plan         Plan               @relation(fields: [planId], references: [id])
   restaurant   Restaurant         @relation(fields: [restaurantId], references: [id])
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model Bank {
+  id            Int       @id @default(autoincrement())
+  accountName   String
+  accountNumber Int
+  bankName      String
+  createdAt     DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime? @default(now()) @db.Timestamptz(6)
+  deletedAt     DateTime? @default(now()) @db.Timestamptz(6)
+  userId        Int?
+  User          User?     @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 enum SubscriptionStatus {

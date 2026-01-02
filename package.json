@@ -33,12 +33,17 @@
     "@types/bcrypt": "^6.0.0",
     "@types/cookie-parser": "^1.4.10",
     "@types/jsonwebtoken": "^9.0.10",
+    "@types/multer": "^2.0.0",
+    "@types/streamifier": "^0.1.2",
     "bcrypt": "^6.0.0",
+    "cloudinary": "^2.8.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "express": "^5.2.1",
     "express-validator": "^7.3.1",
     "jsonwebtoken": "^9.0.3",
-    "prisma": "^7.1.0"
+    "multer": "^2.0.2",
+    "prisma": "^7.1.0",
+    "streamifier": "^0.1.1"
   }
 }

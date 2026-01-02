@@ -34,6 +34,22 @@ class UserController {
     }
   }
 
+  async RegisterUser(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const response = new ApiResponse(res);
+      const restaurantId = req.user.restaurantId;
+      const data = await UserServices.registerUser({ ...req.body, restaurantId });
+      response.success(200, "Register User Success", data);
+    } catch (error) {
+        console.log(error);
+        next(error);
+    }
+  }
+
   async UpdateUser(
     req: Request,
     res: Response,

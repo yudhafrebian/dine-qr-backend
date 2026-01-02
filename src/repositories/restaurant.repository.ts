@@ -1,7 +1,6 @@
 import { prisma } from "../config/prisma";
 import { Prisma } from "../generated/prisma/client";
 import { IRestaurant } from "../interface/restaurant.interface";
-import slugify from "../utils/slugify";
 
 type Tx = Prisma.TransactionClient;
 

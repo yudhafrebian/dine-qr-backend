@@ -17,7 +17,8 @@ class UserRouter {
     this.#route.get("/:id", this.#userController.GetUserById);
     this.#route.patch("/:id", this.#userController.UpdateUser);
     this.#route.patch("/restore/:id", this.#userController.RestoreUser);
-    this.#route.post("/:id", this.#userController.DeleteUser);
+    this.#route.patch("/delete/:id", this.#userController.DeleteUser);
+    this.#route.post("/register-user", this.#userController.RegisterUser);
   }
 
   public getRouter(): Router {

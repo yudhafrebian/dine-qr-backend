@@ -5,7 +5,6 @@ import {
   generateRefreshToken,
   verifyRefreshToken,
 } from "../utils/token";
-import { IUser } from "../interface/user.interface";
 import { ApiError } from "../utils/ApiError";
 import { hashPassword } from "../utils/hashPassword";
 import slugify from "../utils/slugify";
@@ -14,7 +13,6 @@ import { RestaurantRepository } from "../repositories/restaurant.repository";
 import { SubscriptionRepository } from "../repositories/subscription.repository";
 import { IAuth } from "../interface/auth.interface";
 import { PlanRepository } from "../repositories/plan.repository";
-import { subscribe } from "diagnostics_channel";
 
 export const AuthServices = {
   login: async (email: string, password: string) => {
@@ -36,7 +34,7 @@ export const AuthServices = {
     const payload = {
       id: account.id,
       role: account.role,
-      restaurandId: account.restaurantId,
+      restaurantId: account.restaurantId,
     };
 
     const accessToken = generateAccessToken(payload);
@@ -115,7 +113,7 @@ export const AuthServices = {
         tx
       );
 
-      return {user, restaurant, subscriptions};
+      return { user, restaurant, subscriptions };
     });
   },
 

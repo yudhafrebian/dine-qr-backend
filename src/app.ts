@@ -5,6 +5,7 @@ import AuthRouter from "./routers/auth.router";
 import UserRouter from "./routers/user.router";
 import cookieParser from "cookie-parser";
 import CategoryRouter from "./routers/category.router";
+import MenuRouter from "./routers/menu.router";
 
 const PORT = process.env.PORT || 4000;
 
@@ -18,7 +19,10 @@ class App {
     this.#errorHandler();
   }
   #configure(): void {
-    this.app.use(cors());
+    this.app.use(cors({
+      origin: "http://localhost:3000",
+      credentials: true
+    }));
     this.app.use(express.json());
     this.app.use(cookieParser());
   }
@@ -27,6 +31,7 @@ class App {
     const authRouter = new AuthRouter();
     const userRouter = new UserRouter();
     const categoryRouter = new CategoryRouter();
+    const menuRouter = new MenuRouter();
     this.app.get("/", (req: Request, res: Response) => {
       res.status(200).send("DineQR API BASE");
     });
@@ -36,6 +41,7 @@ class App {
     this.app.use("/v1/auth", authRouter.getRouter());
     this.app.use("/v1/users", userRouter.getRouter());
     this.app.use("/v1/categories", categoryRouter.getRouter());
+    this.app.use("/v1/menus", menuRouter.getRouter());
   }
 
   #errorHandler(): void {

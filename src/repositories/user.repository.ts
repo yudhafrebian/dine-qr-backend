@@ -13,6 +13,7 @@ export const UserRepository = {
     const client = tx ?? prisma;
     return client.user.create({
       data,
+      include: { restaurant: true },
     });
   },
   findRefreshTokenById: (userId: number) =>

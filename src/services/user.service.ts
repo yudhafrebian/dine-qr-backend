@@ -1,11 +1,23 @@
+import { RestaurantRepository } from "../repositories/restaurant.repository";
 import { UserRepository } from "../repositories/user.repository";
 import { ApiError } from "../utils/ApiError";
+import { hashPassword } from "../utils/hashPassword";
 
 export const UserServices = {
   getAllUsers: async () => {
     const users = await UserRepository.findAll();
     if (!users) throw new ApiError(404, "Users not found");
     return users;
+  },
+
+  registerUser: async (data: any) => {
+    const isEmailExist = await UserRepository.findByEmail(data.email);
+    if (isEmailExist) throw new ApiError(400, "Email already exist");
+    return UserRepository.create({
+      ...data,
+      password: await hashPassword(data.password),
+      restaurantId: data.restaurantId,
+    });
   },
 
   getUserById: async (id: number) => {

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import AuthController from "../controllers/auth.controller";
 import { loginValidation, onboardingRegisterValidation, registerValidation } from "../middleware/validation/auth.validation";
+import { authMiddleware } from "../middleware/auth.middleware";
 
 class AuthRouter {
   #route: Router;
@@ -14,6 +15,8 @@ class AuthRouter {
   #initializeRoutes() {
     this.#route.post("/login", loginValidation, this.#authController.Login);
     this.#route.post("/register", onboardingRegisterValidation, this.#authController.Register);
+    this.#route.post("/refresh", this.#authController.Refresh);
+    this.#route.use(authMiddleware)
     this.#route.post("/logout", this.#authController.Logout);
   }
 
