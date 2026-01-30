@@ -48,6 +48,8 @@ class AuthController {
     }
   }
 
+
+
   async Refresh(req: Request, res: Response, next: NextFunction): Promise<void> {
     const response = new ApiResponse(res);
     try {
@@ -56,7 +58,6 @@ class AuthController {
       res.cookie("access_token", data?.accessToken, cookieOptions);
       res.cookie("refresh_token", data?.refreshToken, refreshCookieOptions);
       response.success(200, "Refresh Success", data);
-      
     } catch (error) {
       console.log(error);
       next(error);

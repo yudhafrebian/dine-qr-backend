@@ -13,9 +13,12 @@ class MenuRouter {
     }
     
     #initializeRoutes(){
-        this.#route.use(authMiddleware)
         this.#route.get("/all", this.#menuController.GetAllMenu);
+        this.#route.use(authMiddleware)
+        this.#route.get("/:id", this.#menuController.GetMenuById);
         this.#route.post("/create", uploaderMemory().single("imageUrl"), this.#menuController.CreateMenu);
+        this.#route.patch("/update/:id", uploaderMemory().single("imageUrl"), this.#menuController.UpdateMenu);
+        this.#route.patch("/delete/:id", this.#menuController.DeleteMenu);
     }
 
     public getRouter():Router{

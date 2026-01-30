@@ -11,7 +11,7 @@ export const verifyRefreshToken = (token: string) => {
     return jwt.verify(token, process.env.REFRESH_SECRET!) as {
       id: number;
       role: "SUPERADMIN" | "ADMIN" | "CASHIER" | "KITCHEN";
-      restaurandId: number;
+      restaurantId: number;
     };
   } catch (error) {
     throw new Error("Invalid Refresh Token");

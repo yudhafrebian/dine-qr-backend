@@ -121,7 +121,6 @@ export const AuthServices = {
     if (!refreshToken) throw new ApiError(401, "Refresh token not found");
 
     const payload = verifyRefreshToken(refreshToken);
-
     const tokenInDb = await UserRepository.findRefreshTokenById(payload.id);
 
     if (!tokenInDb) {
@@ -135,13 +134,13 @@ export const AuthServices = {
     const newAccessToken = generateAccessToken({
       id: payload.id,
       role: payload.role,
-      restaurandId: payload.restaurandId,
+      restaurantId: payload.restaurantId,
     });
 
     const newRefreshToken = generateRefreshToken({
       id: payload.id,
       role: payload.role,
-      restaurandId: payload.restaurandId,
+      restaurantId: payload.restaurantId,
     });
 
     await UserRepository.updateRefreshToken(tokenInDb.id, newRefreshToken);

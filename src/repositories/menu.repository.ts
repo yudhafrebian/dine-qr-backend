@@ -8,6 +8,26 @@ export const MenuRepository = {
       include: { category: true },
     }),
 
+  getAllByRestaurantId: (id: number) =>
+    prisma.menuItem.findMany({
+      where: { restaurantId: id, deletedAt: null },
+      include: { category: true },
+    }),
+
+  getById: (id: number) =>
+    prisma.menuItem.findUnique({
+      where: { id, deletedAt: null },
+      include: { category: true },
+    }),
+
+  getTotalMenu: (restaurantId: number) =>
+    prisma.menuItem.count({
+      where: {
+        restaurantId,
+        deletedAt: null,
+      },
+    }),
+
   create: (data: IMenu & { imageUrl?: string }) =>
     prisma.menuItem.create({
       data: {
@@ -33,4 +53,9 @@ export const MenuRepository = {
         category: true,
       },
     }),
+
+  update: (id: number, data: any) =>
+    prisma.menuItem.update({ where: { id }, data }),
+  delete: (id: number) =>
+    prisma.menuItem.update({ where: { id }, data: { deletedAt: new Date() } }),
 };

@@ -1,4 +1,4 @@
-import { v2 as cloudinary, UploadApiResponse } from "cloudinary";
+import { v2 as cloudinary, UploadApiResponse, UploadStream } from "cloudinary";
 import * as streamifier from "streamifier";
 
 cloudinary.config({
@@ -20,5 +20,22 @@ export const cloudUpload = (
       }
     );
     streamifier.createReadStream(file.buffer).pipe(uploadStream);
+  });
+};
+
+export const uploadBuffer = (
+  buffer: Buffer,
+  folder = "dineqr"
+): Promise<UploadApiResponse> => {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      { folder },
+      (error, result) => {
+        if (error) return reject(error);
+        resolve(result as UploadApiResponse);
+      }
+    );
+
+    streamifier.createReadStream(buffer).pipe(uploadStream);
   });
 };

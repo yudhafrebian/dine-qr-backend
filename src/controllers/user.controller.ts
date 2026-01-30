@@ -18,6 +18,22 @@ class UserController {
     }
   }
 
+  async GetUserByRestaurandId(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const response = new ApiResponse(res);
+      const restaurandId = req.user.restaurantId;
+      const data = await UserServices.getAllByRestaurantId(restaurandId);
+      response.success(200, "Get User By Restaurand Id Success", data);
+    } catch (error) {
+        console.log(error);
+        next(error);
+    }
+  }
+
   async GetUserById(
     req: Request,
     res: Response,

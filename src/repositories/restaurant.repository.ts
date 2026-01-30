@@ -6,6 +6,7 @@ type Tx = Prisma.TransactionClient;
 
 export const RestaurantRepository = {
   findAll: () => prisma.restaurant.findMany(),
+  findById: (id: number) => prisma.restaurant.findUnique({ where: { id } }),
   findBySlug: (slug: string) =>
     prisma.restaurant.findFirst({ where: { slug } }),
   create: (data: IRestaurant, tx?: Tx) => {

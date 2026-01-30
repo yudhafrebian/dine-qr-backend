@@ -5,6 +5,7 @@ import slugify from "../utils/slugify";
 
 export const CategoryServices = {
   GetAllCategory: async () => await CategoryRepository.getAll(),
+  GetAllByRestaurantId: async (id: number) => await CategoryRepository.getAllByRestaurantId(id),
   GetCategoryById: async (id: number) => {
     const category = await CategoryRepository.getbyId(id);
     if (!category) throw new ApiError(404,"Category not found");

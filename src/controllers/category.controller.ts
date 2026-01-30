@@ -18,6 +18,24 @@ class CategoryController {
     }
   }
 
+  async GetCategoryByRestaurandId(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const response = new ApiResponse(res);
+      const restaurandId = req.user.restaurantId;
+      const data = await CategoryServices.GetAllByRestaurantId(
+        restaurandId
+      );
+      response.success(200, "Get Category By Restaurand Id Success", data);
+    } catch (error) {
+      console.log(error);
+      next(error);
+    }
+  }
+
   async GetCategoryById(
     req: Request,
     res: Response,

@@ -7,4 +7,8 @@ export const PlanRepository = {
     const client = tx ?? prisma;
     return client.plan.findUnique({ where: { name } });
   },
+  findPlanById: async (id: number, tx?: Tx) => {
+    const client = tx ?? prisma;
+    return client.plan.findUnique({ where: { id } });
+  },
 };
