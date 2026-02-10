@@ -5,7 +5,7 @@ type Tx = Prisma.TransactionClient;
 export const PlanRepository = {
   findPlanByName: async (name: string, tx?: Tx) => {
     const client = tx ?? prisma;
-    return client.plan.findUnique({ where: { name } });
+    return client.plan.findFirst({ where: { name } });
   },
   findPlanById: async (id: number, tx?: Tx) => {
     const client = tx ?? prisma;

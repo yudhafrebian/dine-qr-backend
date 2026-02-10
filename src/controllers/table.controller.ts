@@ -17,6 +17,40 @@ class TableController {
     }
   }
 
+  async GetAllByRestaurantId(req: Request, res: Response, next: NextFunction) {
+    try {
+      const response = new ApiResponse(res);
+      const restaurantId = req.user.restaurantId;
+
+      console.log("Restaurant ID:", restaurantId);
+      const data = await TableServices.getAllByRestaurantId(
+        Number(restaurantId),
+      );
+
+      response.success(200, "Get All Table By Restaurant Success", data);
+    } catch (error) {
+      console.log(error);
+      next(error);
+    }
+  }
+
+  async GetTableById(req: Request, res: Response, next: NextFunction) {
+    try {
+      const response = new ApiResponse(res);
+      const restaurantId = req.user.restaurantId;
+      const id = req.params.id;
+
+      const data = await TableServices.getTableById(
+        Number(id),
+        Number(restaurantId),
+      );
+      response.success(200, "Get Table By Id Success", data);
+    } catch (error) {
+      console.log(error);
+      next(error);
+    }
+  }
+
   async CreateTable(req: Request, res: Response, next: NextFunction) {
     try {
       const response = new ApiResponse(res);
@@ -29,16 +63,35 @@ class TableController {
         throw new ApiError(404, "Restaurant not found");
       }
 
-      const payloadUrl = buildFrontendUrl(`/r/${restaurant.slug}/t/${tableNumber}`);
+      const payloadUrl = buildFrontendUrl(
+        `/r/${restaurant.slug}/t/${tableNumber}`,
+      );
       console.log("Payload URL:", payloadUrl);
       const data = await TableServices.create(
         {
           tableNumber,
           restaurantId,
         },
-        payloadUrl
+        payloadUrl,
       );
       response.success(200, "Create Table Success", data);
+    } catch (error) {
+      console.log(error);
+      next(error);
+    }
+  }
+
+  async UpdateTable(req: Request, res: Response, next: NextFunction) {
+    try {
+      const response = new ApiResponse(res);
+      const restaurantId = req.user.restaurantId;
+      const id = req.params.id;
+      const data = await TableServices.update(
+        Number(id),
+        restaurantId,
+        req.body,
+      );
+      response.success(200, "Update Table Success", data);
     } catch (error) {
       console.log(error);
       next(error);

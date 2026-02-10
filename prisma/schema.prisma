@@ -132,6 +132,7 @@ model Payment {
   createdAt       DateTime @default(now()) @db.Timestamptz(6)
   updatedAt       DateTime @default(now()) @updatedAt @db.Timestamptz(6)
   order           Order    @relation(fields: [orderId], references: [id])
+  subscription    Subscription?
 }
 
 model TransactionLog {
@@ -146,8 +147,10 @@ model TransactionLog {
 
 model Plan {
   id            Int            @id @default(autoincrement())
-  name          String         @unique
+  name          String        
   price         Int
+  originalPrice Int?
+  duration      PlanDuration   @default(MONTHLY)
   maxTables     Int
   maxMenus      Int
   maxUsers      Int
@@ -157,12 +160,14 @@ model Plan {
   createdAt     DateTime       @default(now()) @db.Timestamptz(6)
   updatedAt     DateTime       @default(now()) @updatedAt @db.Timestamptz(6)
   subscriptions Subscription[]
+  @@unique([name, duration])
 }
 
 model Subscription {
   id           Int                @id @default(autoincrement())
   restaurantId Int                @unique
   planId       Int
+  lastPaymentId Int?          @unique
   status       SubscriptionStatus @default(ACTIVE)
   startDate    DateTime           @db.Timestamptz(6)
   endDate      DateTime?          @db.Timestamptz(6)
@@ -171,6 +176,7 @@ model Subscription {
   updatedAt    DateTime           @default(now()) @updatedAt @db.Timestamptz(6)
   plan         Plan               @relation(fields: [planId], references: [id])
   restaurant   Restaurant         @relation(fields: [restaurantId], references: [id])
+  payment      Payment?           @relation(fields: [lastPaymentId], references: [id])
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -214,4 +220,9 @@ enum OrderStatus {
   PROCESSING
   READY
   COMPLETED
+}
+
+enum PlanDuration {
+  MONTHLY
+  YEARLY
 }

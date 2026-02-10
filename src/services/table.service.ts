@@ -10,14 +10,31 @@ import { generateQrBuffer } from "../utils/QrGenerator";
 export const TableServices = {
   getAll: async () => await TableRepository.getAll(),
 
-  getAllByRestaurantId: async (id: number) =>
-    await TableRepository.getAllByRestaurantId(id),
+  getAllByRestaurantId: async (id: number) => {
+    const data = await TableRepository.getAllByRestaurantId(id);
+    if (data.length === 0) {
+      throw new ApiError(404, "No tables found for this restaurant");
+    }
+    return data;
+  },
 
-  getTableById: async (id: number) => await TableRepository.getById(id),
+  getTableById: async (id: number, restaurantId: number) => {
+    if (!id || !restaurantId) {
+      throw new ApiError(400, "Table ID and Restaurant ID are required");
+    }
+
+    const table = await TableRepository.getById(id, restaurantId);
+
+    if (!table) {
+      throw new ApiError(404, "Table not found");
+    }
+
+    return table;
+  },
 
   create: async (data: ITable, payloadUrl: string) => {
     const restaurantPlan = await SubscriptionRepository.getbyRestaurantId(
-      data.restaurantId
+      data.restaurantId,
     );
 
     const plan = await PlanRepository.findPlanById(restaurantPlan[0].planId);
@@ -41,5 +58,11 @@ export const TableServices = {
       qrCodeUrl,
       restaurant: { connect: { id: data.restaurantId } },
     });
+  },
+
+  update: async (id: number, restaurantId: number, data: ITable) => {
+    const table = await TableRepository.getById(id, restaurantId);
+    if (!table) throw new ApiError(404, "Table not found");
+    return await TableRepository.update(id, data);
   },
 };
