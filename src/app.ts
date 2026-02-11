@@ -8,6 +8,7 @@ import CategoryRouter from "./routers/category.router";
 import MenuRouter from "./routers/menu.router";
 import TableRouter from "./routers/table.router";
 import RestaurantRouter from "./routers/restaurant.router";
+import OrderRouter from "./routers/order.router";
 
 const PORT = process.env.PORT || 4000;
 
@@ -36,6 +37,7 @@ class App {
     const menuRouter = new MenuRouter();
     const tableRouter = new TableRouter();
     const restaurantRouter = new RestaurantRouter();
+    const orderRouter = new OrderRouter();
     this.app.get("/", (req: Request, res: Response) => {
       res.status(200).send("DineQR API BASE");
     });
@@ -48,6 +50,7 @@ class App {
     this.app.use("/v1/menus", menuRouter.getRouter());
     this.app.use("/v1/tables", tableRouter.getRouter());
     this.app.use("/v1/restaurants", restaurantRouter.getRouter());
+    this.app.use("/v1/orders", orderRouter.getRouter());
   }
 
   #errorHandler(): void {
