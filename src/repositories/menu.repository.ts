@@ -5,19 +5,19 @@ export const MenuRepository = {
   getAll: () =>
     prisma.menuItem.findMany({
       where: { deletedAt: null },
-      include: { category: true },
+      include: { Category: true },
     }),
 
   getAllByRestaurantId: (id: number) =>
     prisma.menuItem.findMany({
       where: { restaurantId: id, deletedAt: null },
-      include: { category: true },
+      include: { Category: true },
     }),
 
   getById: (id: number) =>
     prisma.menuItem.findUnique({
       where: { id, deletedAt: null },
-      include: { category: true },
+      include: { Category: true },
     }),
 
   getTotalMenu: (restaurantId: number) =>
@@ -37,20 +37,20 @@ export const MenuRepository = {
         imageUrl: data.imageUrl,
         isAvailable: data.isAvailable ?? true,
 
-        category: {
+        Category: {
           connect: {
             id: Number(data.categoryId),
           },
         },
 
-        restaurant: {
+        Restaurant: {
           connect: {
             id: Number(data.restaurantId),
           },
         },
       },
       include: {
-        category: true,
+        Category: true,
       },
     }),
 

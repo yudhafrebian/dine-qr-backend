@@ -7,181 +7,6 @@ datasource db {
   provider = "postgresql"
 }
 
-model Restaurant {
-  id           Int           @id @default(autoincrement())
-  name         String
-  slug         String        @unique
-  isActive     Boolean       @default(true)
-  createdAt    DateTime      @default(now()) @db.Timestamptz(6)
-  updatedAt    DateTime      @default(now()) @updatedAt @db.Timestamptz(6)
-  deletedAt    DateTime?     @db.Timestamptz(6)
-  categories   Category[]
-  menuItems    MenuItem[]
-  orders       Order[]
-  subscription Subscription?
-  tables       Table[]
-  users        User[]
-}
-
-model User {
-  id           Int            @id @default(autoincrement())
-  name         String
-  email        String         @unique
-  password     String
-  role         Role           @default(ADMIN)
-  createdAt    DateTime       @default(now()) @db.Timestamptz(6)
-  updatedAt    DateTime       @default(now()) @updatedAt @db.Timestamptz(6)
-  deletedAt    DateTime?      @db.Timestamptz(6)
-  restaurantId Int
-  Bank         Bank[]
-  tokens       RefreshToken[]
-  restaurant   Restaurant     @relation(fields: [restaurantId], references: [id])
-}
-
-model RefreshToken {
-  id        Int      @id @default(autoincrement())
-  token     String   @unique
-  userId    Int
-  userAgent String?
-  ipAddress String?
-  createdAt DateTime @default(now()) @db.Timestamptz(6)
-  expiresAt DateTime @default(now()) @db.Timestamptz(6)
-  revoked   Boolean  @default(false)
-  user      User     @relation(fields: [userId], references: [id])
-}
-
-model Table {
-  id           Int        @id @default(autoincrement())
-  tableNumber  Int
-  qrCodeUrl    String
-  createdAt    DateTime   @default(now()) @db.Timestamptz(6)
-  restaurantId Int
-  deletedAt    DateTime?  @db.Timestamptz(6)
-  updatedAt    DateTime   @default(now()) @updatedAt @db.Timestamptz(6)
-  orders       Order[]
-  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
-
-  @@unique([restaurantId, tableNumber])
-}
-
-model Category {
-  id           Int        @id @default(autoincrement())
-  name         String
-  createdAt    DateTime   @default(now()) @db.Timestamptz(6)
-  deletedAt    DateTime?  @db.Timestamptz(6)
-  restaurantId Int
-  slug         String
-  updatedAt    DateTime?  @default(now()) @db.Timestamptz(6)
-  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
-  menuItems    MenuItem[]
-}
-
-model MenuItem {
-  id           Int         @id @default(autoincrement())
-  name         String
-  description  String?
-  price        Int
-  imageUrl     String?
-  isAvailable  Boolean     @default(true)
-  categoryId   Int
-  createdAt    DateTime    @default(now()) @db.Timestamptz(6)
-  restaurantId Int
-  updatedAt    DateTime    @default(now()) @updatedAt @db.Timestamptz(6)
-  deletedAt    DateTime?   @db.Timestamptz(6)
-  category     Category    @relation(fields: [categoryId], references: [id])
-  restaurant   Restaurant  @relation(fields: [restaurantId], references: [id])
-  orderItems   OrderItem[]
-}
-
-model Order {
-  id            Int              @id @default(autoincrement())
-  orderNumber   String
-  tableId       Int
-  paymentMethod PaymentMethod
-  paymentStatus PaymentStatus    @default(UNPAID)
-  orderStatus   OrderStatus      @default(PENDING)
-  totalPrice    Int
-  createdAt     DateTime         @default(now()) @db.Timestamptz(6)
-  updatedAt     DateTime         @default(now()) @updatedAt @db.Timestamptz(6)
-  restaurantId  Int
-  restaurant    Restaurant       @relation(fields: [restaurantId], references: [id])
-  table         Table            @relation(fields: [tableId], references: [id])
-  orderItems    OrderItem[]
-  payment       Payment?
-  logs          TransactionLog[]
-
-  @@unique([restaurantId, orderNumber])
-}
-
-model OrderItem {
-  id         Int      @id @default(autoincrement())
-  orderId    Int
-  menuItemId Int
-  qty        Int
-  price      Int
-  menuItem   MenuItem @relation(fields: [menuItemId], references: [id])
-  order      Order    @relation(fields: [orderId], references: [id])
-}
-
-model Payment {
-  id              Int           @id @default(autoincrement())
-  orderId         Int           @unique
-  paymentType     String?
-  transactionId   String?
-  paymentStatus   String?
-  grossAmount     Int?
-  rawCallbackData Json?
-  createdAt       DateTime      @default(now()) @db.Timestamptz(6)
-  updatedAt       DateTime      @default(now()) @updatedAt @db.Timestamptz(6)
-  order           Order         @relation(fields: [orderId], references: [id])
-  subscription    Subscription?
-}
-
-model TransactionLog {
-  id        Int      @id @default(autoincrement())
-  orderId   Int?
-  event     String
-  message   String?
-  data      Json?
-  createdAt DateTime @default(now()) @db.Timestamptz(6)
-  order     Order?   @relation(fields: [orderId], references: [id])
-}
-
-model Plan {
-  id            Int            @id @default(autoincrement())
-  name          String
-  price         Int
-  maxTables     Int
-  maxMenus      Int
-  maxUsers      Int
-  hasQRIS       Boolean        @default(false)
-  hasReports    Boolean        @default(false)
-  isActive      Boolean        @default(true)
-  createdAt     DateTime       @default(now()) @db.Timestamptz(6)
-  updatedAt     DateTime       @default(now()) @updatedAt @db.Timestamptz(6)
-  duration      PlanDuration   @default(MONTHLY)
-  originalPrice Int?
-  subscriptions Subscription[]
-
-  @@unique([name, duration])
-}
-
-model Subscription {
-  id            Int                @id @default(autoincrement())
-  restaurantId  Int                @unique
-  planId        Int
-  status        SubscriptionStatus @default(ACTIVE)
-  startDate     DateTime           @db.Timestamptz(6)
-  endDate       DateTime?          @db.Timestamptz(6)
-  autoRenew     Boolean            @default(true)
-  createdAt     DateTime           @default(now()) @db.Timestamptz(6)
-  updatedAt     DateTime           @default(now()) @updatedAt @db.Timestamptz(6)
-  lastPaymentId Int?               @unique
-  payment       Payment?           @relation(fields: [lastPaymentId], references: [id])
-  plan          Plan               @relation(fields: [planId], references: [id])
-  restaurant    Restaurant         @relation(fields: [restaurantId], references: [id])
-}
-
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model Bank {
   id            Int       @id @default(autoincrement())
@@ -195,27 +20,184 @@ model Bank {
   User          User?     @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
-enum SubscriptionStatus {
-  ACTIVE
-  EXPIRED
-  CANCELED
+model Category {
+  id           Int        @id @default(autoincrement())
+  name         String
+  createdAt    DateTime   @default(now()) @db.Timestamptz(6)
+  deletedAt    DateTime?  @db.Timestamptz(6)
+  restaurantId Int
+  slug         String
+  updatedAt    DateTime?  @default(now()) @db.Timestamptz(6)
+  Restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+  MenuItem     MenuItem[]
 }
 
-enum Role {
-  ADMIN
-  CASHIER
-  SUPER_ADMIN
-  KITCHEN
+model MenuItem {
+  id           Int         @id @default(autoincrement())
+  name         String
+  description  String?
+  price        Int
+  imageUrl     String?
+  isAvailable  Boolean     @default(true)
+  categoryId   Int
+  createdAt    DateTime    @default(now()) @db.Timestamptz(6)
+  restaurantId Int
+  updatedAt    DateTime    @default(now()) @db.Timestamptz(6)
+  deletedAt    DateTime?   @db.Timestamptz(6)
+  Category     Category    @relation(fields: [categoryId], references: [id])
+  Restaurant   Restaurant  @relation(fields: [restaurantId], references: [id])
+  OrderItem    OrderItem[]
+}
+
+model Order {
+  id             Int              @id @default(autoincrement())
+  orderNumber    String
+  tableId        Int
+  paymentMethod  PaymentMethod
+  paymentStatus  PaymentStatus    @default(UNPAID)
+  orderStatus    OrderStatus      @default(PENDING)
+  totalPrice     Int
+  createdAt      DateTime         @default(now()) @db.Timestamptz(6)
+  updatedAt      DateTime         @default(now()) @db.Timestamptz(6)
+  restaurantId   Int
+  Restaurant     Restaurant       @relation(fields: [restaurantId], references: [id])
+  Table          Table            @relation(fields: [tableId], references: [id])
+  OrderItem      OrderItem[]
+  Payment        Payment?
+  TransactionLog TransactionLog[]
+
+  @@unique([restaurantId, orderNumber])
+}
+
+model OrderItem {
+  id         Int      @id @default(autoincrement())
+  orderId    Int
+  menuItemId Int
+  qty        Int
+  price      Int
+  MenuItem   MenuItem @relation(fields: [menuItemId], references: [id])
+  Order      Order    @relation(fields: [orderId], references: [id])
+}
+
+model Payment {
+  id              Int           @id @default(autoincrement())
+  orderId         Int           @unique
+  paymentType     String?
+  transactionId   String?
+  paymentStatus   String?
+  grossAmount     Int?
+  rawCallbackData Json?
+  createdAt       DateTime      @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime      @default(now()) @db.Timestamptz(6)
+  Order           Order         @relation(fields: [orderId], references: [id])
+  Subscription    Subscription?
+}
+
+model Plan {
+  id            Int            @id @default(autoincrement())
+  name          String
+  price         Int
+  maxTables     Int
+  maxMenus      Int
+  maxUsers      Int
+  hasQRIS       Boolean        @default(false)
+  hasReports    Boolean        @default(false)
+  isActive      Boolean        @default(true)
+  createdAt     DateTime       @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime       @default(now()) @db.Timestamptz(6)
+  duration      PlanDuration   @default(MONTHLY)
+  originalPrice Int?
+  Subscription  Subscription[]
+
+  @@unique([name, duration])
+}
+
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  userId    Int
+  userAgent String?
+  ipAddress String?
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  expiresAt DateTime @default(now()) @db.Timestamptz(6)
+  revoked   Boolean  @default(false)
+  User      User     @relation(fields: [userId], references: [id])
+}
+
+model Restaurant {
+  id           Int           @id @default(autoincrement())
+  name         String
+  slug         String        @unique
+  isActive     Boolean       @default(true)
+  createdAt    DateTime      @default(now()) @db.Timestamptz(6)
+  updatedAt    DateTime      @default(now()) @db.Timestamptz(6)
+  deletedAt    DateTime?     @db.Timestamptz(6)
+  Category     Category[]
+  MenuItem     MenuItem[]
+  Order        Order[]
+  Subscription Subscription?
+  Table        Table[]
+  User         User[]
+}
+
+model Subscription {
+  id            Int                @id @default(autoincrement())
+  restaurantId  Int                @unique
+  planId        Int
+  status        SubscriptionStatus @default(ACTIVE)
+  startDate     DateTime           @db.Timestamptz(6)
+  endDate       DateTime?          @db.Timestamptz(6)
+  autoRenew     Boolean            @default(true)
+  createdAt     DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime           @default(now()) @db.Timestamptz(6)
+  lastPaymentId Int?               @unique
+  Payment       Payment?           @relation(fields: [lastPaymentId], references: [id])
+  Plan          Plan               @relation(fields: [planId], references: [id])
+  Restaurant    Restaurant         @relation(fields: [restaurantId], references: [id])
+}
+
+model Table {
+  id           Int        @id @default(autoincrement())
+  tableNumber  Int
+  qrCodeUrl    String
+  createdAt    DateTime   @default(now()) @db.Timestamptz(6)
+  restaurantId Int
+  deletedAt    DateTime?  @db.Timestamptz(6)
+  updatedAt    DateTime   @default(now()) @db.Timestamptz(6)
+  Order        Order[]
+  Restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+
+  @@unique([restaurantId, tableNumber])
+}
+
+model TransactionLog {
+  id        Int      @id @default(autoincrement())
+  orderId   Int?
+  event     String
+  message   String?
+  data      Json?
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  Order     Order?   @relation(fields: [orderId], references: [id])
+}
+
+model User {
+  id           Int            @id @default(autoincrement())
+  name         String
+  email        String         @unique
+  password     String
+  role         Role           @default(ADMIN)
+  createdAt    DateTime       @default(now()) @db.Timestamptz(6)
+  updatedAt    DateTime       @default(now()) @db.Timestamptz(6)
+  deletedAt    DateTime?      @db.Timestamptz(6)
+  restaurantId Int
+  Bank         Bank[]
+  RefreshToken RefreshToken[]
+  Restaurant   Restaurant     @relation(fields: [restaurantId], references: [id])
 }
 
 enum PaymentMethod {
   CASH
   QRIS
-}
-
-enum PaymentStatus {
-  UNPAID
-  PAID
 }
 
 enum OrderStatus {
@@ -225,7 +207,25 @@ enum OrderStatus {
   COMPLETED
 }
 
+enum PaymentStatus {
+  UNPAID
+  PAID
+}
+
 enum PlanDuration {
   MONTHLY
   YEARLY
+}
+
+enum Role {
+  ADMIN
+  CASHIER
+  SUPER_ADMIN
+  KITCHEN
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+  CANCELED
 }

@@ -27,7 +27,7 @@ export const AuthServices = {
       throw new ApiError(401, "Invalid Password or Email");
     }
 
-    if (!account.restaurant.isActive) {
+    if (!account.Restaurant.isActive) {
       throw new ApiError(401, "Restaurant is not active");
     }
 

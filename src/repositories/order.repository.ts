@@ -10,8 +10,8 @@ export const OrderRepository = {
     return client.order.create({
       data,
       include: {
-        orderItems: {
-          include: { menuItem: true }
+        OrderItem: {
+          include: { MenuItem: true }
         }
       }
     });
@@ -21,19 +21,16 @@ export const OrderRepository = {
     return prisma.order.findUnique({
       where: { id },
       include: {
-        orderItems: { include: { menuItem: true } },
-        table: true,
-        payment: true
+        OrderItem: { include: { MenuItem: true } },
+        Table: true,
+        Payment: true
       }
     });
   },
-  findByOrderNumber: (orderNumber: string, restaurantId: number) => {
-    return prisma.order.findUnique({
+  findByOrderNumber: (orderNumber: string) => {
+    return prisma.order.findFirst({
       where: {
-        restaurantId_orderNumber: {
-          restaurantId,
-          orderNumber
-        }
+        orderNumber
       }
     });
   },
@@ -73,8 +70,8 @@ export const OrderRepository = {
         ...filters
       },
       include: {
-        table: true,
-        orderItems: { include: { menuItem: true } }
+        Table: true,
+        OrderItem: { include: { MenuItem: true } }
       },
       orderBy: { createdAt: 'desc' }
     });

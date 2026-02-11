@@ -3,6 +3,7 @@ import { OrderServices } from "../services/order.service";
 import ApiResponse from "../utils/Response";
 import { OrderRepository } from "../repositories/order.repository";
 import { TransactionLogRepository } from "../repositories/transaction-log.repository";
+import { PaymentRepository } from "../repositories/payment.repository";
 
 class OrderController {
   async CreateOrder(
@@ -36,41 +37,52 @@ class OrderController {
     }
   }
 
-  // Di Order.controller.ts atau khusus WebhookController
   async handleMidtransWebhook(req: Request, res: Response) {
-    const response = new ApiResponse(res);
-    const statusResponse = req.body; // Data dari Midtrans
+    try {
+        const respone = new ApiResponse(res)
+        const statusResponse = req.body;
 
-    const orderId = statusResponse.order_id;
-    const transactionStatus = statusResponse.transaction_status;
-    const fraudStatus = statusResponse.fraud_status;
+        if (!statusResponse || !statusResponse.order_id) {
+            return res.status(400).json({ message: "Invalid payload" });
+        }
 
-    if (transactionStatus === "capture" || transactionStatus === "settlement") {
-      if (fraudStatus === "challenge") {
-        // Opsional: handle fraud
-      } else {
-        // PEMBAYARAN SUKSES
-        await OrderRepository.updatePaymentStatus(orderId, "PAID");
+        const orderNumber = statusResponse.order_id;
+        const transactionStatus = statusResponse.transaction_status;
 
-        // Buat log transaksi
-        await TransactionLogRepository.create(
-          orderId,
-          "PAYMENT_SUCCESS",
-          `Pembayaran ${statusResponse.payment_type} sukses`,
-          statusResponse,
-        );
+        const order = await OrderRepository.findByOrderNumber(orderNumber);
 
-        await OrderRepository.updateOrderStatus(orderId, "PENDING");
-      }
-    } else if (
-      transactionStatus === "cancel" ||
-      transactionStatus === "expire"
-    ) {
-      // Handle pesanan gagal/kadaluarsa
+        if (!order) {
+            console.log(`Order ${orderNumber} tidak ditemukan di database.`);
+            return res.status(404).json({ message: "Order not found" });
+        }
+
+        if (transactionStatus === "capture" || transactionStatus === "settlement") {
+            await OrderRepository.updatePaymentStatus(order.id, "PAID");
+            await OrderRepository.updateOrderStatus(order.id, "PENDING");
+
+            await PaymentRepository.createPayment({
+              orderId: order.id,
+              amount: Number(statusResponse.gross_amount),
+              method: statusResponse.payment_type,
+              transactionId: statusResponse.transaction_id
+            })
+
+            await TransactionLogRepository.create(
+              order.id,
+              "Payment Success",
+              `Payment for ${statusResponse.payment_type} success`,
+              statusResponse
+            )
+            
+            
+            console.log(`Payment Success for ${statusResponse.order_id}`)
+        }
+        respone.success(200, "Payment Success")
+    } catch (error) {
+        console.error("Webhook Error:", error);
+        res.status(500).json({ message: "Internal Server Error" });
     }
-
-    response.success(200, "Webhook diterima");
-  }
+}
 }
 
 export default OrderController;

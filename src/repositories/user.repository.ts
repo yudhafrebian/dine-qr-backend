@@ -11,7 +11,7 @@ export const UserRepository = {
   findById: (id: number) =>
     prisma.user.findUnique({ where: { id, deletedAt: null } }),
   findByEmail: (email: string) =>
-    prisma.user.findUnique({ where: { email }, include: { restaurant: true } }),
+    prisma.user.findUnique({ where: { email }, include: { Restaurant: true } }),
   getTotalUser: (restaurantId: number) =>
     prisma.user.count({
       where: { restaurantId: restaurantId, deletedAt: null },
@@ -20,7 +20,7 @@ export const UserRepository = {
     const client = tx ?? prisma;
     return client.user.create({
       data,
-      include: { restaurant: true },
+      include: { Restaurant: true },
     });
   },
   findRefreshTokenById: (userId: number, refreshToken?: string) =>

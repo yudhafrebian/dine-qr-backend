@@ -10,6 +10,6 @@ export const SubscriptionRepository = {
     prisma.subscription.findMany({ where: { restaurantId: id } }),
   create: (data: CreateSubscriptionDTO, tx?: Tx) => {
     const client = tx ?? prisma;
-    return client.subscription.create({ data, include: { plan: true } });
+    return client.subscription.create({ data, include: { Plan: true } });
   },
 };

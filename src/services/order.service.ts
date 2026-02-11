@@ -41,7 +41,7 @@ export const OrderServices = {
         paymentStatus: "UNPAID",
         orderStatus: "PENDING",
         totalPrice: totalAmount,
-        orderItems: {
+        OrderItem: {
           create: orderItemsData
         }
       }, tx);

@@ -12,7 +12,7 @@ export interface IOrder {
   paymentStatus: "PAID" | "UNPAID";
   orderStatus: "PENDING" | "PROCESSING" | "READY" | "COMPLETED";
   totalPrice: number;
-  orderItems: {
+  OrderItem: {
     create: IOrderItem[];
   };
 }

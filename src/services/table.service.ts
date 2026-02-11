@@ -56,7 +56,7 @@ export const TableServices = {
     return await TableRepository.create({
       tableNumber: data.tableNumber,
       qrCodeUrl,
-      restaurant: { connect: { id: data.restaurantId } },
+      Restaurant: { connect: { id: data.restaurantId } },
     });
   },
 

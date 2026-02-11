@@ -7,7 +7,7 @@ export const TransactionLogRepository = {
         event,
         message,
         data: data ? data : undefined,
-        order: {
+        Order: {
           connect: { id: orderId },
         },
       },
