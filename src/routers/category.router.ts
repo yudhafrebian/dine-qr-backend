@@ -13,7 +13,8 @@ class CategoryRouter {
 
   #initializeRoutes() {
     this.#route.use(authMiddleware);
-    this.#route.get("/all", this.#categoryController.GetCategory);
+    this.#route.get("/", this.#categoryController.GetCategory);
+    this.#route.get("/all", this.#categoryController.GetCategoryByRestaurandId);
     this.#route.get("/:id", this.#categoryController.GetCategoryById);
     this.#route.patch("/update/:id", this.#categoryController.UpdateCategory);
     this.#route.patch("/delete/:id", this.#categoryController.DeleteCategory);

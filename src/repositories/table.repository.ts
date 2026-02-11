@@ -13,7 +13,7 @@ export const TableRepository = {
   getTotalTable: (id: number) => prisma.table.count({ where: { restaurantId: id, deletedAt: null } }),
   create: (data: Prisma.TableCreateInput) => prisma.table.create({ data }),
   update: (id: number, data: ITable) =>
-    prisma.table.update({ where: { id }, data }),
+    prisma.table.update({ where: { id }, data: { ...data, updatedAt: new Date() } }),
   delete: (id: number) =>
     prisma.table.update({ where: { id }, data: { deletedAt: new Date() } }),
 };

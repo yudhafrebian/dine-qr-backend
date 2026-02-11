@@ -4,6 +4,7 @@ import ApiResponse from "../utils/Response";
 import { RestaurantRepository } from "../repositories/restaurant.repository";
 import { ApiError } from "../utils/ApiError";
 import { buildFrontendUrl } from "../utils/FePathBuilder";
+import { HashId } from "../utils/hashId";
 
 class TableController {
   async GetAll(req: Request, res: Response, next: NextFunction) {
@@ -22,7 +23,6 @@ class TableController {
       const response = new ApiResponse(res);
       const restaurantId = req.user.restaurantId;
 
-      console.log("Restaurant ID:", restaurantId);
       const data = await TableServices.getAllByRestaurantId(
         Number(restaurantId),
       );
@@ -63,8 +63,10 @@ class TableController {
         throw new ApiError(404, "Restaurant not found");
       }
 
+      const hashedRestaurantId = HashId.encode(restaurantId);
+
       const payloadUrl = buildFrontendUrl(
-        `/r/${restaurant.slug}/t/${tableNumber}`,
+        `/v/${hashedRestaurantId}/t/${tableNumber}`,
       );
       console.log("Payload URL:", payloadUrl);
       const data = await TableServices.create(
@@ -92,6 +94,18 @@ class TableController {
         req.body,
       );
       response.success(200, "Update Table Success", data);
+    } catch (error) {
+      console.log(error);
+      next(error);
+    }
+  }
+
+  async DeleteTable(req: Request, res: Response, next: NextFunction) {
+    try {
+      const response = new ApiResponse(res);
+      const id = req.params.id;
+      const data =await TableServices.delete(Number(id));
+      response.success(200, "Delete Table Success", data);
     } catch (error) {
       console.log(error);
       next(error);

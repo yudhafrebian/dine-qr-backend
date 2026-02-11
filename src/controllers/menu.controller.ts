@@ -1,12 +1,13 @@
 import { NextFunction, Request, Response } from "express";
 import ApiResponse from "../utils/Response";
 import { MenuServices } from "../services/menu.service";
+import { HashId } from "../utils/hashId";
 
 class MenuController {
   async GetAllMenu(
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ): Promise<void> {
     try {
       const response = new ApiResponse(res);
@@ -18,15 +19,18 @@ class MenuController {
     }
   }
 
-  async getMenuByRestaurantId(
+  async GetMenuByRestaurantId(
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ): Promise<void> {
     try {
       const response = new ApiResponse(res);
-      const restaurandId = req.user.restaurantId;
-      const data = await MenuServices.getAllByRestaurantId(restaurandId);
+      const { hash } = req.params;
+      const restaurantId = HashId.decode(hash);
+      const data = await MenuServices.getAllByRestaurantId(
+        Number(restaurantId),
+      );
       response.success(200, "Get Menu By Restaurand Id Success", data);
     } catch (error) {
       console.log(error);
@@ -37,7 +41,7 @@ class MenuController {
   async GetMenuById(
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ): Promise<void> {
     try {
       const response = new ApiResponse(res);
@@ -53,7 +57,7 @@ class MenuController {
   async CreateMenu(
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ): Promise<void> {
     try {
       const response = new ApiResponse(res);
@@ -67,7 +71,7 @@ class MenuController {
           isAvailable: true,
           restaurantId,
         },
-        file
+        file,
       );
       response.success(200, "Create Menu Success", data);
     } catch (error) {
@@ -79,7 +83,7 @@ class MenuController {
   async UpdateMenu(
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ): Promise<void> {
     try {
       const response = new ApiResponse(res);
@@ -95,7 +99,7 @@ class MenuController {
   async DeleteMenu(
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ): Promise<void> {
     try {
       const response = new ApiResponse(res);

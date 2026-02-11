@@ -119,9 +119,12 @@ export const AuthServices = {
 
   refresh: async (refreshToken: string) => {
     if (!refreshToken) throw new ApiError(401, "Refresh token not found");
+    console.log("Refresh token:", refreshToken);
 
     const payload = verifyRefreshToken(refreshToken);
-    const tokenInDb = await UserRepository.findRefreshTokenById(payload.id);
+    console.log("Payload from token:", payload);
+    const tokenInDb = await UserRepository.findRefreshTokenById(payload.id, refreshToken);
+    console.log("Token in DB:", tokenInDb);
 
     if (!tokenInDb) {
       throw new ApiError(401, "Invalid refresh token");

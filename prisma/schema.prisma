@@ -14,6 +14,7 @@ model Restaurant {
   isActive     Boolean       @default(true)
   createdAt    DateTime      @default(now()) @db.Timestamptz(6)
   updatedAt    DateTime      @default(now()) @updatedAt @db.Timestamptz(6)
+  deletedAt    DateTime?     @db.Timestamptz(6)
   categories   Category[]
   menuItems    MenuItem[]
   orders       Order[]
@@ -54,9 +55,9 @@ model Table {
   tableNumber  Int
   qrCodeUrl    String
   createdAt    DateTime   @default(now()) @db.Timestamptz(6)
-  updatedAt    DateTime       @default(now()) @updatedAt @db.Timestamptz(6)
-  deletedAt    DateTime?      @db.Timestamptz(6)
   restaurantId Int
+  deletedAt    DateTime?  @db.Timestamptz(6)
+  updatedAt    DateTime   @default(now()) @updatedAt @db.Timestamptz(6)
   orders       Order[]
   restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
 
@@ -70,6 +71,7 @@ model Category {
   deletedAt    DateTime?  @db.Timestamptz(6)
   restaurantId Int
   slug         String
+  updatedAt    DateTime?  @default(now()) @db.Timestamptz(6)
   restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
   menuItems    MenuItem[]
 }
@@ -122,16 +124,16 @@ model OrderItem {
 }
 
 model Payment {
-  id              Int      @id @default(autoincrement())
-  orderId         Int      @unique
+  id              Int           @id @default(autoincrement())
+  orderId         Int           @unique
   paymentType     String?
   transactionId   String?
   paymentStatus   String?
   grossAmount     Int?
   rawCallbackData Json?
-  createdAt       DateTime @default(now()) @db.Timestamptz(6)
-  updatedAt       DateTime @default(now()) @updatedAt @db.Timestamptz(6)
-  order           Order    @relation(fields: [orderId], references: [id])
+  createdAt       DateTime      @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime      @default(now()) @updatedAt @db.Timestamptz(6)
+  order           Order         @relation(fields: [orderId], references: [id])
   subscription    Subscription?
 }
 
@@ -147,10 +149,8 @@ model TransactionLog {
 
 model Plan {
   id            Int            @id @default(autoincrement())
-  name          String        
+  name          String
   price         Int
-  originalPrice Int?
-  duration      PlanDuration   @default(MONTHLY)
   maxTables     Int
   maxMenus      Int
   maxUsers      Int
@@ -159,24 +159,27 @@ model Plan {
   isActive      Boolean        @default(true)
   createdAt     DateTime       @default(now()) @db.Timestamptz(6)
   updatedAt     DateTime       @default(now()) @updatedAt @db.Timestamptz(6)
+  duration      PlanDuration   @default(MONTHLY)
+  originalPrice Int?
   subscriptions Subscription[]
+
   @@unique([name, duration])
 }
 
 model Subscription {
-  id           Int                @id @default(autoincrement())
-  restaurantId Int                @unique
-  planId       Int
-  lastPaymentId Int?          @unique
-  status       SubscriptionStatus @default(ACTIVE)
-  startDate    DateTime           @db.Timestamptz(6)
-  endDate      DateTime?          @db.Timestamptz(6)
-  autoRenew    Boolean            @default(true)
-  createdAt    DateTime           @default(now()) @db.Timestamptz(6)
-  updatedAt    DateTime           @default(now()) @updatedAt @db.Timestamptz(6)
-  plan         Plan               @relation(fields: [planId], references: [id])
-  restaurant   Restaurant         @relation(fields: [restaurantId], references: [id])
-  payment      Payment?           @relation(fields: [lastPaymentId], references: [id])
+  id            Int                @id @default(autoincrement())
+  restaurantId  Int                @unique
+  planId        Int
+  status        SubscriptionStatus @default(ACTIVE)
+  startDate     DateTime           @db.Timestamptz(6)
+  endDate       DateTime?          @db.Timestamptz(6)
+  autoRenew     Boolean            @default(true)
+  createdAt     DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime           @default(now()) @updatedAt @db.Timestamptz(6)
+  lastPaymentId Int?               @unique
+  payment       Payment?           @relation(fields: [lastPaymentId], references: [id])
+  plan          Plan               @relation(fields: [planId], references: [id])
+  restaurant    Restaurant         @relation(fields: [restaurantId], references: [id])
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -187,7 +190,7 @@ model Bank {
   bankName      String
   createdAt     DateTime  @default(now()) @db.Timestamptz(6)
   updatedAt     DateTime? @default(now()) @db.Timestamptz(6)
-  deletedAt     DateTime? @default(now()) @db.Timestamptz(6)
+  deletedAt     DateTime? @db.Timestamptz(6)
   userId        Int?
   User          User?     @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }

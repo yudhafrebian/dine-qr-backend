@@ -55,7 +55,7 @@ export const MenuRepository = {
     }),
 
   update: (id: number, data: any) =>
-    prisma.menuItem.update({ where: { id }, data }),
+    prisma.menuItem.update({ where: { id }, data: { ...data, updatedAt: new Date() } }),
   delete: (id: number) =>
     prisma.menuItem.update({ where: { id }, data: { deletedAt: new Date() } }),
 };

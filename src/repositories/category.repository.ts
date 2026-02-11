@@ -8,7 +8,7 @@ export const CategoryRepository = {
   getbyId: (id: number) => prisma.category.findUnique({ where: { id } }),
   create: (data: ICategory) => prisma.category.create({ data }),
   update: (id: number, data: any) =>
-    prisma.category.update({ where: { id }, data }),
+    prisma.category.update({ where: { id }, data: { ...data, updatedAt: new Date() } }),
   delete: (id: number) =>
     prisma.category.update({ where: { id }, data: { deletedAt: new Date() } }),
 };

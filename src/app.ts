@@ -7,6 +7,7 @@ import cookieParser from "cookie-parser";
 import CategoryRouter from "./routers/category.router";
 import MenuRouter from "./routers/menu.router";
 import TableRouter from "./routers/table.router";
+import RestaurantRouter from "./routers/restaurant.router";
 
 const PORT = process.env.PORT || 4000;
 
@@ -34,6 +35,7 @@ class App {
     const categoryRouter = new CategoryRouter();
     const menuRouter = new MenuRouter();
     const tableRouter = new TableRouter();
+    const restaurantRouter = new RestaurantRouter();
     this.app.get("/", (req: Request, res: Response) => {
       res.status(200).send("DineQR API BASE");
     });
@@ -45,6 +47,7 @@ class App {
     this.app.use("/v1/categories", categoryRouter.getRouter());
     this.app.use("/v1/menus", menuRouter.getRouter());
     this.app.use("/v1/tables", tableRouter.getRouter());
+    this.app.use("/v1/restaurants", restaurantRouter.getRouter());
   }
 
   #errorHandler(): void {

@@ -65,4 +65,10 @@ export const TableServices = {
     if (!table) throw new ApiError(404, "Table not found");
     return await TableRepository.update(id, data);
   },
+
+  delete: async (id: number) => {
+    const table = await TableRepository.delete(id);
+    if (!table) throw new ApiError(404, "Table not found");
+    return await TableRepository.delete(id);
+  }
 };

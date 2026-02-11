@@ -23,8 +23,10 @@ export const UserRepository = {
       include: { restaurant: true },
     });
   },
-  findRefreshTokenById: (userId: number) =>
-    prisma.refreshToken.findFirst({ where: { userId } }),
+  findRefreshTokenById: (userId: number, refreshToken?: string) =>
+    prisma.refreshToken.findFirst({
+      where: { userId, token: refreshToken, expiresAt: { gt: new Date() } },
+    }),
   updateRefreshToken: (id: number, refreshToken: string) =>
     prisma.refreshToken.update({
       where: { id },
@@ -42,7 +44,10 @@ export const UserRepository = {
   deleteRefreshToken: (id: number) =>
     prisma.refreshToken.deleteMany({ where: { id } }),
   update: (id: number, data: any) =>
-    prisma.user.update({ where: { id }, data }),
+    prisma.user.update({
+      where: { id },
+      data: { ...data, updatedAt: new Date() },
+    }),
   delete: (id: number) =>
     prisma.user.update({ where: { id }, data: { deletedAt: new Date() } }),
   restore: (id: number) =>

@@ -3,6 +3,7 @@ import { IMenu } from "../interface/menu.interface";
 import { CategoryRepository } from "../repositories/category.repository";
 import { MenuRepository } from "../repositories/menu.repository";
 import { PlanRepository } from "../repositories/plan.repository";
+import { RestaurantRepository } from "../repositories/restaurant.repository";
 import { SubscriptionRepository } from "../repositories/subscription.repository";
 import { ApiError } from "../utils/ApiError";
 import { CheckPlanLimit } from "../utils/policies/planLimit.policy";
@@ -10,8 +11,17 @@ import { CheckPlanLimit } from "../utils/policies/planLimit.policy";
 export const MenuServices = {
   getAllMenu: async () => await MenuRepository.getAll(),
 
-  getAllByRestaurantId: async (id: number) =>
-    await MenuRepository.getAllByRestaurantId(id),
+  getAllByRestaurantId: async (id: number) => {
+    const restaurant = await RestaurantRepository.findById(id);
+    if (!restaurant || !restaurant.isActive) {
+      throw new ApiError(404, "Restaurant not found or is currently inactive");
+    }
+    const menu = await MenuRepository.getAllByRestaurantId(id);
+    if (!menu) {
+      throw new ApiError(404, "Menu not found or is currently inactive");
+    }
+    return menu;
+  },
 
   getMenuById: async (id: number) => {
     const menu = await MenuRepository.getById(id);
@@ -27,7 +37,7 @@ export const MenuServices = {
     if (!category) throw new ApiError(404, "Category not found");
 
     const restaurantPlan = await SubscriptionRepository.getbyRestaurantId(
-      data.restaurantId
+      data.restaurantId,
     );
 
     const plan = await PlanRepository.findPlanById(restaurantPlan[0].planId);
@@ -52,7 +62,7 @@ export const MenuServices = {
   update: async (
     id: number,
     data: IMenu,
-    file?: Express.Multer.File | undefined
+    file?: Express.Multer.File | undefined,
   ) => {
     const menu = await MenuRepository.getById(id);
     const price = Number(data.price);
