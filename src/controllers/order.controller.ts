@@ -63,6 +63,8 @@ class OrderController {
             restaurantId: Number(restaurantId),
             planId: Number(planId),
             midtransTransactionId: statusResponse.transaction_id,
+            gross_amount: Number(statusResponse.gross_amount),
+            paymentId: statusResponse.order_id,
           });
           
 

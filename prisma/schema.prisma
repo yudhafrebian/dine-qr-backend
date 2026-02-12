@@ -163,7 +163,7 @@ model SubscriptionHistory {
   id             Int      @id @default(autoincrement())
   restaurantId   Int
   planId         Int
-  paymentId      Int?     @unique
+  paymentId      String?     @unique
   startDate      DateTime
   endDate        DateTime
   amountPaid     Int
