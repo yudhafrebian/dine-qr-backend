@@ -41,9 +41,9 @@ model MenuItem {
   isAvailable  Boolean     @default(true)
   categoryId   Int
   createdAt    DateTime    @default(now()) @db.Timestamptz(6)
+  deletedAt    DateTime?   @db.Timestamptz(6)
   restaurantId Int
   updatedAt    DateTime    @default(now()) @db.Timestamptz(6)
-  deletedAt    DateTime?   @db.Timestamptz(6)
   Category     Category    @relation(fields: [categoryId], references: [id])
   Restaurant   Restaurant  @relation(fields: [restaurantId], references: [id])
   OrderItem    OrderItem[]
@@ -105,8 +105,10 @@ model Plan {
   isActive      Boolean        @default(true)
   createdAt     DateTime       @default(now()) @db.Timestamptz(6)
   updatedAt     DateTime       @default(now()) @db.Timestamptz(6)
-  duration      PlanDuration   @default(MONTHLY)
+  deletedAt     DateTime?      @db.Timestamptz(6)
   originalPrice Int?
+  duration      PlanDuration   @default(MONTHLY)
+  SubscriptionHistory SubscriptionHistory[]
   Subscription  Subscription[]
 
   @@unique([name, duration])
@@ -132,6 +134,7 @@ model Restaurant {
   createdAt    DateTime      @default(now()) @db.Timestamptz(6)
   updatedAt    DateTime      @default(now()) @db.Timestamptz(6)
   deletedAt    DateTime?     @db.Timestamptz(6)
+  SubscriptionHistory SubscriptionHistory[]
   Category     Category[]
   MenuItem     MenuItem[]
   Order        Order[]
@@ -156,13 +159,28 @@ model Subscription {
   Restaurant    Restaurant         @relation(fields: [restaurantId], references: [id])
 }
 
+model SubscriptionHistory {
+  id             Int      @id @default(autoincrement())
+  restaurantId   Int
+  planId         Int
+  paymentId      Int?     @unique
+  startDate      DateTime
+  endDate        DateTime
+  amountPaid     Int
+  status         String   // e.g., "SUCCESS", "RENEWAL"
+  createdAt      DateTime @default(now())
+
+  Restaurant     Restaurant @relation(fields: [restaurantId], references: [id])
+  Plan           Plan       @relation(fields: [planId], references: [id])
+}
+
 model Table {
   id           Int        @id @default(autoincrement())
   tableNumber  Int
   qrCodeUrl    String
   createdAt    DateTime   @default(now()) @db.Timestamptz(6)
-  restaurantId Int
   deletedAt    DateTime?  @db.Timestamptz(6)
+  restaurantId Int
   updatedAt    DateTime   @default(now()) @db.Timestamptz(6)
   Order        Order[]
   Restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
@@ -189,10 +207,10 @@ model User {
   createdAt    DateTime       @default(now()) @db.Timestamptz(6)
   updatedAt    DateTime       @default(now()) @db.Timestamptz(6)
   deletedAt    DateTime?      @db.Timestamptz(6)
-  restaurantId Int
+  restaurantId Int?
   Bank         Bank[]
   RefreshToken RefreshToken[]
-  Restaurant   Restaurant     @relation(fields: [restaurantId], references: [id])
+  Restaurant   Restaurant?    @relation(fields: [restaurantId], references: [id], onDelete: Restrict)
 }
 
 enum PaymentMethod {

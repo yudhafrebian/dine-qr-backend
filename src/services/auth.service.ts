@@ -27,8 +27,10 @@ export const AuthServices = {
       throw new ApiError(401, "Invalid Password or Email");
     }
 
-    if (!account.Restaurant.isActive) {
-      throw new ApiError(401, "Restaurant is not active");
+    if (account.role !== "SUPER_ADMIN") {
+      if (!account.Restaurant?.isActive) {
+        throw new ApiError(401, "Restaurant is not active");
+      }
     }
 
     const payload = {
@@ -41,13 +43,13 @@ export const AuthServices = {
     const refreshToken = generateRefreshToken(payload);
 
     const findRefreshToken = await UserRepository.findRefreshTokenById(
-      account.id
+      account.id,
     );
 
     if (findRefreshToken && findRefreshToken.expiresAt > new Date()) {
       await UserRepository.updateRefreshToken(
         findRefreshToken.id,
-        refreshToken
+        refreshToken,
       );
     } else {
       await UserRepository.createRefreshToken(account.id, refreshToken);
@@ -85,10 +87,14 @@ export const AuthServices = {
           ...payload.restaurant,
           slug,
         },
-        tx
+        tx,
       );
 
-      const freePlan = await PlanRepository.findPlanByName("Free", tx);
+      const freePlan = await PlanRepository.findPlanByName(
+        "Free",
+        "YEARLY",
+        tx,
+      );
 
       if (!freePlan) throw new ApiError(404, "Plan not found");
 
@@ -99,9 +105,9 @@ export const AuthServices = {
           status: "ACTIVE",
           startDate: new Date(),
           endDate: null,
-          autoRenew: true,
+          autoRenew: false,
         },
-        tx
+        tx,
       );
 
       const user = await UserRepository.create(
@@ -110,7 +116,7 @@ export const AuthServices = {
           password: await hashPassword(payload.user.password),
           restaurantId: restaurant.id,
         },
-        tx
+        tx,
       );
 
       return { user, restaurant, subscriptions };
@@ -123,7 +129,10 @@ export const AuthServices = {
 
     const payload = verifyRefreshToken(refreshToken);
     console.log("Payload from token:", payload);
-    const tokenInDb = await UserRepository.findRefreshTokenById(payload.id, refreshToken);
+    const tokenInDb = await UserRepository.findRefreshTokenById(
+      payload.id,
+      refreshToken,
+    );
     console.log("Token in DB:", tokenInDb);
 
     if (!tokenInDb) {

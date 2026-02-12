@@ -9,6 +9,8 @@ import MenuRouter from "./routers/menu.router";
 import TableRouter from "./routers/table.router";
 import RestaurantRouter from "./routers/restaurant.router";
 import OrderRouter from "./routers/order.router";
+import PlanRouter from "./routers/plan.router";
+import SubscriptionRouter from "./routers/subscription.router";
 
 const PORT = process.env.PORT || 4000;
 
@@ -38,8 +40,10 @@ class App {
     const tableRouter = new TableRouter();
     const restaurantRouter = new RestaurantRouter();
     const orderRouter = new OrderRouter();
+    const planRouter = new PlanRouter();
+    const subscriptionRouter = new SubscriptionRouter();
     this.app.get("/", (req: Request, res: Response) => {
-      res.status(200).send("DineQR API BASE");
+      res.status(200).send("Crave API BASE");
     });
     this.app.use("/v1/health", (req: Request, res: Response) => {
       res.status(200).send("OK");
@@ -51,6 +55,8 @@ class App {
     this.app.use("/v1/tables", tableRouter.getRouter());
     this.app.use("/v1/restaurants", restaurantRouter.getRouter());
     this.app.use("/v1/orders", orderRouter.getRouter());
+    this.app.use("/v1/plans", planRouter.getRouter());
+    this.app.use("/v1/subscriptions", subscriptionRouter.getRouter());
   }
 
   #errorHandler(): void {
