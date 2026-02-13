@@ -49,6 +49,7 @@
     "multer": "^2.0.2",
     "prisma": "^7.1.0",
     "qrcode": "^1.5.4",
+    "socket.io": "^4.8.3",
     "streamifier": "^0.1.1"
   }
 }

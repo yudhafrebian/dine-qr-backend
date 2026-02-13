@@ -4,6 +4,12 @@ import { OrderRepository } from "../repositories/order.repository";
 import { ApiError } from "../utils/ApiError";
 
 export const OrderServices = {
+  getAllPaidOrders: async (restaurantId: number) => {
+    return await OrderRepository.findAllPaidOrders(
+      restaurantId,
+    );
+  },
+
   createOrder: async (payload: { 
     restaurantId: number, 
     tableId: number, 
@@ -52,6 +58,10 @@ export const OrderServices = {
           transaction_details: {
             order_id: orderNumber, // Harus unik
             gross_amount: totalAmount
+          },
+          metadata:{
+            payment_type: "ORDER",
+            restaurant_id: payload.restaurantId
           },
           usage_limit: 1 // Opsional
         };

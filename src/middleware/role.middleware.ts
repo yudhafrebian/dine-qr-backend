@@ -1,57 +1,21 @@
-import { NextFunction, Request, Response } from "express";
-import jwt from "jsonwebtoken";
+// src/middlewares/role.middleware.ts
+import { Request, Response, NextFunction } from "express";
 import ApiResponse from "../utils/Response";
 
-export const SuperAdminMiddleware = (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  const token = req.cookies.access_token;
-  const response = new ApiResponse(res);
+export const roleMiddleware = (allowedRoles: string[]) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const response = new ApiResponse(res);
+    
+    const user = (req as any).user;
 
-  if (!token) {
-    return response.unauthorized("Unauthorized, Please Login First");
-  }
-
-  try {
-    const decoded = jwt.verify(token, process.env.ACCESS_SECRET!);
-    console.log("Decoded Token:", decoded);
-    req.user = decoded;
-    if (req.user.role !== "SUPER_ADMIN") {
-      return response.unauthorized(
-        "Forbidden, You don't have access to this resource",
-      );
+    if (!user) {
+      return response.error(401, "Unauthorized: No user data found");
     }
-    next();
-  } catch (error) {
-    return response.unauthorized("Token Expired");
-  }
-};
 
-export const AdminMiddleware = (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  const token = req.cookies.access_token;
-  const response = new ApiResponse(res);
-
-  if (!token) {
-    return response.unauthorized("Unauthorized, Please Login First");
-  }
-
-  try {
-    const decoded = jwt.verify(token, process.env.ACCESS_SECRET!);
-    console.log("Decoded Token:", decoded);
-    req.user = decoded;
-    if (req.user.role !== "ADMIN" && req.user.role !== "SUPER_ADMIN") {
-      return response.unauthorized(
-        "Forbidden, You don't have access to this resource",
-      );
+    if (!allowedRoles.includes(user.role)) {
+      return response.error(403, "Forbidden: You don't have permission to access this resource");
     }
+
     next();
-  } catch (error) {
-    return response.unauthorized("Token Expired");
-  }
+  };
 };

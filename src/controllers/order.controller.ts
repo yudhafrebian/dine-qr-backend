@@ -5,6 +5,7 @@ import { OrderRepository } from "../repositories/order.repository";
 import { TransactionLogRepository } from "../repositories/transaction-log.repository";
 import { PaymentRepository } from "../repositories/payment.repository";
 import { SubscriptionService } from "../services/subscription.service";
+import { BalanceService } from "../services/balance.service";
 
 class OrderController {
   async CreateOrder(
@@ -38,7 +39,7 @@ class OrderController {
     }
   }
 
-  async handleMidtransWebhook(req: Request, res: Response) {
+  async handleMidtransWebhook(req: Request, res: Response, next: NextFunction) {
     try {
       const response = new ApiResponse(res);
       const statusResponse = req.body;
@@ -47,8 +48,10 @@ class OrderController {
         return res.status(400).json({ message: "Invalid payload" });
       }
 
+      console.log("Midtrans Webhook Received:", statusResponse);
+
       const midtransOrderId = statusResponse.order_id;
-      const midtransPaymentType= statusResponse.metadata.payment_type;
+      const midtransPaymentType = statusResponse.metadata.payment_type;
       const transactionStatus = statusResponse.transaction_status;
       const isSubscription = midtransPaymentType === "SUBSCRIPTION";
 
@@ -57,18 +60,16 @@ class OrderController {
           transactionStatus === "capture" ||
           transactionStatus === "settlement"
         ) {
-          const { restaurantId, planId } = statusResponse.metadata;
+          const { restaurantId, planId, isDowngrade } = statusResponse.metadata;
 
           await SubscriptionService.activateSubscription({
             restaurantId: Number(restaurantId),
             planId: Number(planId),
+            isDowngrade,
             midtransTransactionId: statusResponse.transaction_id,
             gross_amount: Number(statusResponse.gross_amount),
             paymentId: statusResponse.order_id,
           });
-          
-
-          console.log(`Subscription Activated for Restaurant ${restaurantId}`);
         }
         return response.success(200, "Subscription Processed");
       }
@@ -84,14 +85,34 @@ class OrderController {
         transactionStatus === "capture" ||
         transactionStatus === "settlement"
       ) {
+
+        req.io.to(`restaurant-${order.restaurantId}`).emit("new-order", {
+          message: "New order received",
+          orderNumber: order.orderNumber,
+          tableId: order.tableId,
+        });
+
         await OrderRepository.updatePaymentStatus(order.id, "PAID");
         await OrderRepository.updateOrderStatus(order.id, "PENDING");
 
         await PaymentRepository.createPayment({
-          orderId: order.id, // Di sini orderId aman karena jalur Order
+          orderId: order.id,
           amount: Number(statusResponse.gross_amount),
           method: statusResponse.payment_type,
           transactionId: statusResponse.transaction_id,
+        });
+
+        await BalanceService.updateBalance(
+          order.restaurantId,
+          Number(statusResponse.gross_amount),
+          "INCREMENT",
+        );
+
+        await BalanceService.createBalanceHistory({
+          restaurantId: order.restaurantId,
+          amount: Number(statusResponse.gross_amount),
+          type: "INCREMENT",
+          description: `Payment received for order ${order.orderNumber}`,
         });
 
         await TransactionLogRepository.create(
@@ -105,7 +126,7 @@ class OrderController {
       return response.success(200, "Order Payment Processed");
     } catch (error) {
       console.error("Webhook Error:", error);
-      res.status(500).json({ message: "Internal Server Error" });
+      next(error);
     }
   }
 }

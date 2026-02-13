@@ -1,6 +1,6 @@
 import { Router } from "express";
 import PlanController from "../controllers/plan.controller";
-import { SuperAdminMiddleware } from "../middleware/role.middleware";
+import { roleMiddleware } from "../middleware/role.middleware";
 
 class PlanRouter {
   #route: Router;
@@ -13,7 +13,7 @@ class PlanRouter {
 
   #initializeRoutes() {
     this.#route.get("/", this.#planControlller.GetAllPlans);
-    this.#route.use(SuperAdminMiddleware);
+    this.#route.use(roleMiddleware(["SUPER_ADMIN"]));
     this.#route.get("/:id", this.#planControlller.GetPlanById);
     this.#route.post("/", this.#planControlller.CreatePlan);
     this.#route.patch("/:id", this.#planControlller.UpdatePlan);

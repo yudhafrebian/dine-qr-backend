@@ -1,6 +1,7 @@
 import { Router } from "express";
 import CategoryController from "../controllers/category.controller";
 import { authMiddleware } from "../middleware/auth.middleware";
+import { roleMiddleware } from "../middleware/role.middleware";
 
 class CategoryRouter {
   #route: Router;
@@ -16,6 +17,7 @@ class CategoryRouter {
     this.#route.get("/", this.#categoryController.GetCategory);
     this.#route.get("/all", this.#categoryController.GetCategoryByRestaurandId);
     this.#route.get("/:id", this.#categoryController.GetCategoryById);
+    this.#route.use(roleMiddleware(["ADMIN", "SUPER_ADMIN"]));
     this.#route.patch("/update/:id", this.#categoryController.UpdateCategory);
     this.#route.patch("/delete/:id", this.#categoryController.DeleteCategory);
     this.#route.post("/create", this.#categoryController.CreateCategory);

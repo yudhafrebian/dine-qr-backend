@@ -22,8 +22,9 @@ export const UserServices = {
     const restaurantPlan = await SubscriptionRepository.getbyRestaurantId(
       data.restaurantId
     );
+    if (!restaurantPlan) throw new ApiError(404, "Subscription not found");
 
-    const plan = await PlanRepository.findPlanById(restaurantPlan[0].planId);
+    const plan = await PlanRepository.findPlanById(restaurantPlan.planId);
     if (!plan) throw new ApiError(404, "Plan not found");
 
     const maxUsers = plan.maxUsers;

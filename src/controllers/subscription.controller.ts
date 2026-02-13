@@ -7,11 +7,12 @@ class SubscriptionController {
     try {
       const response = new ApiResponse(res);
       const { id, restaurantId } = req.user;
-      const { planId } = req.body;
+      const { planId, useBalance } = req.body;
       const payment = await SubscriptionService.createPayment({
         restaurantId,
         planId,
         userId: id,
+        useBalance: useBalance || false,
       });
       response.success(201, "Payment created", payment);
     } catch (error) {

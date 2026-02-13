@@ -11,9 +11,23 @@ export const OrderRepository = {
       data,
       include: {
         OrderItem: {
-          include: { MenuItem: true }
-        }
-      }
+          include: { MenuItem: true },
+        },
+      },
+    });
+  },
+
+  findAllPaidOrders: (restaurantId: number) => {
+    return prisma.order.findMany({
+      where: {
+        paymentStatus: "PAID",
+        restaurantId,
+      },
+      include: {
+        Table: true,
+        OrderItem: { include: { MenuItem: true } },
+      },
+      orderBy: { createdAt: "desc" },
     });
   },
 
@@ -23,15 +37,15 @@ export const OrderRepository = {
       include: {
         OrderItem: { include: { MenuItem: true } },
         Table: true,
-        Payment: true
-      }
+        Payment: true,
+      },
     });
   },
   findByOrderNumber: (orderNumber: string) => {
     return prisma.order.findFirst({
       where: {
-        orderNumber
-      }
+        orderNumber,
+      },
     });
   },
 
@@ -39,41 +53,48 @@ export const OrderRepository = {
     const client = tx ?? prisma;
     return client.order.update({
       where: { id },
-      data: { 
+      data: {
         paymentStatus: status,
-        updatedAt: new Date()
-      }
+        updatedAt: new Date(),
+      },
     });
   },
 
-  updateOrderStatus: (id: number, status: "PENDING" | "PROCESSING" | "READY" | "COMPLETED", tx?: Tx) => {
+  updateOrderStatus: (
+    id: number,
+    status: "PENDING" | "PROCESSING" | "READY" | "COMPLETED",
+    tx?: Tx,
+  ) => {
     const client = tx ?? prisma;
     return client.order.update({
       where: { id },
-      data: { 
+      data: {
         orderStatus: status,
-        updatedAt: new Date() 
-      }
+        updatedAt: new Date(),
+      },
     });
   },
 
   /**
    * Mendapatkan List Order untuk Dashboard (Kitchen/Cashier)
    */
-  findAllByRestaurant: (restaurantId: number, filters: { 
-    paymentStatus?: "PAID" | "UNPAID", 
-    orderStatus?: "PENDING" | "PROCESSING" | "READY" | "COMPLETED" 
-  }) => {
+  findAllByRestaurant: (
+    restaurantId: number,
+    filters: {
+      paymentStatus?: "PAID" | "UNPAID";
+      orderStatus?: "PENDING" | "PROCESSING" | "READY" | "COMPLETED";
+    },
+  ) => {
     return prisma.order.findMany({
       where: {
         restaurantId,
-        ...filters
+        ...filters,
       },
       include: {
         Table: true,
-        OrderItem: { include: { MenuItem: true } }
+        OrderItem: { include: { MenuItem: true } },
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: "desc" },
     });
   },
 
@@ -83,5 +104,5 @@ export const OrderRepository = {
   createLog: (data: Prisma.TransactionLogCreateInput, tx?: Tx) => {
     const client = tx ?? prisma;
     return client.transactionLog.create({ data });
-  }
+  },
 };

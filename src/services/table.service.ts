@@ -37,7 +37,9 @@ export const TableServices = {
       data.restaurantId,
     );
 
-    const plan = await PlanRepository.findPlanById(restaurantPlan[0].planId);
+    if (!restaurantPlan) throw new ApiError(404, "Subscription not found");
+
+    const plan = await PlanRepository.findPlanById(restaurantPlan.planId);
     if (!plan) throw new ApiError(404, "Plan not found");
 
     const maxTables = plan.maxTables;

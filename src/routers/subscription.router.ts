@@ -1,6 +1,6 @@
 import { Router } from "express";
 import SubscriptionController from "../controllers/subscription.controller";
-import { AdminMiddleware } from "../middleware/role.middleware";
+import { roleMiddleware } from "../middleware/role.middleware";
 
 class SubscriptionRouter {
   #route: Router;
@@ -11,7 +11,7 @@ class SubscriptionRouter {
     this.#initializeRoutes();
   }
   #initializeRoutes() {
-    this.#route.use(AdminMiddleware);
+    this.#route.use(roleMiddleware(["ADMIN", "SUPER_ADMIN"]));
     this.#route.post("/create", this.#subscriptionControlller.CreatePayment);
   }
   getRouter(): Router {

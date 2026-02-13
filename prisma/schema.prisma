@@ -110,6 +110,7 @@ model Plan {
   duration      PlanDuration   @default(MONTHLY)
   SubscriptionHistory SubscriptionHistory[]
   Subscription  Subscription[]
+  NextSubscriptions   Subscription[]        @relation("NextPlan")
 
   @@unique([name, duration])
 }
@@ -131,6 +132,7 @@ model Restaurant {
   name         String
   slug         String        @unique
   isActive     Boolean       @default(true)
+  balance      Int           @default(0)
   createdAt    DateTime      @default(now()) @db.Timestamptz(6)
   updatedAt    DateTime      @default(now()) @db.Timestamptz(6)
   deletedAt    DateTime?     @db.Timestamptz(6)
@@ -141,12 +143,15 @@ model Restaurant {
   Subscription Subscription?
   Table        Table[]
   User         User[]
+  BalanceHistory BalanceHistory[]
 }
 
 model Subscription {
   id            Int                @id @default(autoincrement())
   restaurantId  Int                @unique
   planId        Int
+  nextPlanId    Int?
+  isDowngradePending  Boolean            @default(false)
   status        SubscriptionStatus @default(ACTIVE)
   startDate     DateTime           @db.Timestamptz(6)
   endDate       DateTime?          @db.Timestamptz(6)
@@ -156,6 +161,7 @@ model Subscription {
   lastPaymentId Int?               @unique
   Payment       Payment?           @relation(fields: [lastPaymentId], references: [id])
   Plan          Plan               @relation(fields: [planId], references: [id])
+  NextPlan      Plan?              @relation("NextPlan", fields: [nextPlanId], references: [id])
   Restaurant    Restaurant         @relation(fields: [restaurantId], references: [id])
 }
 
@@ -211,6 +217,17 @@ model User {
   Bank         Bank[]
   RefreshToken RefreshToken[]
   Restaurant   Restaurant?    @relation(fields: [restaurantId], references: [id], onDelete: Restrict)
+}
+
+model BalanceHistory {
+  id           Int      @id @default(autoincrement())
+  restaurantId Int
+  amount       Int      // Bisa positif (top up/refund) atau negatif (dipakai bayar)
+  type         String   // "REFUND", "PAYMENT_USAGE", "ADJUSTMENT"
+  description  String?
+  createdAt    DateTime @default(now())
+  
+  Restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
 }
 
 enum PaymentMethod {

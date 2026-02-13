@@ -2,6 +2,7 @@ import { Router } from "express";
 import MenuController from "../controllers/menu.controller";
 import { authMiddleware } from "../middleware/auth.middleware";
 import { uploaderMemory } from "../middleware/uploader";
+import { roleMiddleware } from "../middleware/role.middleware";
 
 class MenuRouter {
     #route:Router;
@@ -15,7 +16,8 @@ class MenuRouter {
     #initializeRoutes(){
         this.#route.get("/all/:hash", this.#menuController.GetMenuByRestaurantId);
         this.#route.use(authMiddleware)
-        this.#route.get("/all", this.#menuController.GetAllMenu);
+        this.#route.get("/all", roleMiddleware(["SUPER_ADMIN"]), this.#menuController.GetAllMenu);
+        this.#route.use(roleMiddleware(["ADMIN", "SUPER_ADMIN"]));
         this.#route.get("/:id", this.#menuController.GetMenuById);
         this.#route.post("/create", uploaderMemory().single("imageUrl"), this.#menuController.CreateMenu);
         this.#route.patch("/update/:id", uploaderMemory().single("imageUrl"), this.#menuController.UpdateMenu);
