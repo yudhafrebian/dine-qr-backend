@@ -20,7 +20,7 @@ export const OrderRepository = {
   findAllPaidOrders: (restaurantId: number) => {
     return prisma.order.findMany({
       where: {
-        paymentStatus: "PAID",
+        paymentStatus: "PAID", 
         restaurantId,
       },
       include: {

@@ -11,7 +11,8 @@ export const RestaurantRepository = {
     prisma.restaurant.findFirst({ where: { slug, deletedAt: null } }),
   create: (data: IRestaurant, tx?: Tx) => {
     const client = tx ?? prisma;
-    return client.restaurant.create({ data });
+    console.log(data);
+    return client.restaurant.create({ data:{...data, ownerId: data.ownerId} });
   },
   update: (id: number, data: IRestaurant, tx?: Tx) => {
     const client = tx ?? prisma;

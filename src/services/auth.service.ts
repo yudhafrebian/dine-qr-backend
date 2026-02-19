@@ -71,57 +71,59 @@ export const AuthServices = {
     await UserRepository.deleteRefreshToken(userId);
   },
 
-  register: async (payload: IAuth) => {
-    return prisma.$transaction(async (tx) => {
-      const slug = slugify(payload.restaurant.name);
-      const isRestaurantExist = await RestaurantRepository.findBySlug(slug);
-      const isEmailExist = await UserRepository.findByEmail(payload.user.email);
+register: async (payload: IAuth) => {
+  return prisma.$transaction(async (tx) => {
+    const slug = slugify(payload.restaurant.name);
+    
+    const isRestaurantExist = await RestaurantRepository.findBySlug(slug);
+    const isEmailExist = await UserRepository.findByEmail(payload.user.email);
 
-      if (isRestaurantExist)
-        throw new ApiError(400, "Restaurant name already exist");
+    if (isRestaurantExist) throw new ApiError(400, "Restaurant name already exist");
+    if (isEmailExist) throw new ApiError(400, "Email already exist");
 
-      if (isEmailExist) throw new ApiError(400, "Email already exist");
+    const user = await UserRepository.create(
+      {
+        ...payload.user,
+        password: await hashPassword(payload.user.password),
+        isOwner: true,
+        role: "OWNER",
+      },
+      tx
+    );
 
-      const restaurant = await RestaurantRepository.create(
-        {
-          ...payload.restaurant,
-          slug,
-        },
-        tx,
-      );
+    const restaurant = await RestaurantRepository.create(
+      {
+        ...payload.restaurant,
+        slug,
+        ownerId: user.id,
+      },
+      tx
+    );
 
-      const freePlan = await PlanRepository.findPlanByName(
-        "Free",
-        "YEARLY",
-        tx,
-      );
-
-      if (!freePlan) throw new ApiError(404, "Plan not found");
-
-      const subscriptions = await SubscriptionRepository.create(
-        {
-          restaurantId: restaurant.id,
-          planId: freePlan.id,
-          status: "ACTIVE",
-          startDate: new Date(),
-          endDate: null,
-          autoRenew: false,
-        },
-        tx,
-      );
-
-      const user = await UserRepository.create(
-        {
-          ...payload.user,
-          password: await hashPassword(payload.user.password),
-          restaurantId: restaurant.id,
-        },
-        tx,
-      );
-
-      return { user, restaurant, subscriptions };
+    await tx.user.update({
+      where: { id: user.id },
+      data: { restaurantId: restaurant.id }
     });
-  },
+
+    
+    const freePlan = await PlanRepository.findPlanByName("Free", "YEARLY", tx);
+    if (!freePlan) throw new ApiError(404, "Plan not found");
+
+    const subscriptions = await SubscriptionRepository.create(
+      {
+        restaurantId: restaurant.id,
+        planId: freePlan.id,
+        status: "ACTIVE",
+        startDate: new Date(),
+        endDate: null,
+        autoRenew: false,
+      },
+      tx
+    );
+
+    return { user, restaurant, subscriptions };
+  });
+},
 
   refresh: async (refreshToken: string) => {
     if (!refreshToken) throw new ApiError(401, "Refresh token not found");

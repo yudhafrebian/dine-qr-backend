@@ -10,6 +10,8 @@ export const authMiddleware = (
   const token = req.cookies.access_token;
   const response = new ApiResponse(res);
 
+  console.log("Access Token:", token);
+
   if (!token) {
     return response.unauthorized("Unauthorized, Please Login First");
   }

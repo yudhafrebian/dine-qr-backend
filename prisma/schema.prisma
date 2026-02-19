@@ -57,6 +57,7 @@ model Order {
   paymentStatus  PaymentStatus    @default(UNPAID)
   orderStatus    OrderStatus      @default(PENDING)
   totalPrice     Int
+  note           String?
   createdAt      DateTime         @default(now()) @db.Timestamptz(6)
   updatedAt      DateTime         @default(now()) @db.Timestamptz(6)
   restaurantId   Int
@@ -128,22 +129,24 @@ model RefreshToken {
 }
 
 model Restaurant {
-  id           Int           @id @default(autoincrement())
-  name         String
-  slug         String        @unique
-  isActive     Boolean       @default(true)
-  balance      Int           @default(0)
-  createdAt    DateTime      @default(now()) @db.Timestamptz(6)
-  updatedAt    DateTime      @default(now()) @db.Timestamptz(6)
-  deletedAt    DateTime?     @db.Timestamptz(6)
+  id                Int           @id @default(autoincrement())
+  name              String
+  slug              String        @unique
+  isActive          Boolean       @default(true)
+  balance           Int           @default(0)
+  createdAt         DateTime      @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime      @default(now()) @db.Timestamptz(6)
+  deletedAt         DateTime?     @db.Timestamptz(6)
+  ownerId           Int
+  Owner             User          @relation("OwnerToRestaurant", fields: [ownerId], references: [id])
+  Users             User[]        @relation("StaffToRestaurant")
   SubscriptionHistory SubscriptionHistory[]
-  Category     Category[]
-  MenuItem     MenuItem[]
-  Order        Order[]
-  Subscription Subscription?
-  Table        Table[]
-  User         User[]
-  BalanceHistory BalanceHistory[]
+  Category            Category[]
+  MenuItem            MenuItem[]
+  Order               Order[]
+  Subscription        Subscription?
+  Table               Table[]
+  BalanceHistory      BalanceHistory[]
 }
 
 model Subscription {
@@ -205,25 +208,28 @@ model TransactionLog {
 }
 
 model User {
-  id           Int            @id @default(autoincrement())
-  name         String
-  email        String         @unique
-  password     String
-  role         Role           @default(ADMIN)
-  createdAt    DateTime       @default(now()) @db.Timestamptz(6)
-  updatedAt    DateTime       @default(now()) @db.Timestamptz(6)
-  deletedAt    DateTime?      @db.Timestamptz(6)
-  restaurantId Int?
-  Bank         Bank[]
-  RefreshToken RefreshToken[]
-  Restaurant   Restaurant?    @relation(fields: [restaurantId], references: [id], onDelete: Restrict)
+  id            Int           @id @default(autoincrement())
+  isOwner       Boolean       @default(true)
+  name          String
+  email         String        @unique
+  password      String
+  role          Role          @default(ADMIN)
+  createdAt     DateTime      @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime      @default(now()) @db.Timestamptz(6)
+  deletedAt     DateTime?     @db.Timestamptz(6)
+  OwnedRestaurants Restaurant[] @relation("OwnerToRestaurant")
+  restaurantId  Int?
+  Restaurant    Restaurant?   @relation("StaffToRestaurant", fields: [restaurantId], references: [id], onDelete: Restrict)
+
+  Bank          Bank[]
+  RefreshToken  RefreshToken[]
 }
 
 model BalanceHistory {
   id           Int      @id @default(autoincrement())
   restaurantId Int
-  amount       Int      // Bisa positif (top up/refund) atau negatif (dipakai bayar)
-  type         String   // "REFUND", "PAYMENT_USAGE", "ADJUSTMENT"
+  amount       Int      
+  type         String   
   description  String?
   createdAt    DateTime @default(now())
   
@@ -253,6 +259,7 @@ enum PlanDuration {
 }
 
 enum Role {
+  OWNER
   ADMIN
   CASHIER
   SUPER_ADMIN

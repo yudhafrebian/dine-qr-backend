@@ -5,8 +5,11 @@ import ApiResponse from "../utils/Response";
 export const roleMiddleware = (allowedRoles: string[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
     const response = new ApiResponse(res);
+
+    
     
     const user = (req as any).user;
+
 
     if (!user) {
       return response.error(401, "Unauthorized: No user data found");
